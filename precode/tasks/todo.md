@@ -4,6 +4,10 @@ current_state: in_progress
 build_lane: Snap Camp PrecodeOS adoption
 active_feature_window: Control-layer setup and orientation
 primary_authority: PROJECT-CONTEXT.md
+session_state: parked
+parked_awaiting: Conviction Packet
+parked_since: 2026-07-27
+next_safe_action: Local Source Intake
 ---
 
 # Snap Camp — Active Work File
@@ -24,6 +28,35 @@ Last updated: 2026-07-24
 - State: `in_progress`
 - Build lane: Snap Camp PrecodeOS adoption
 - Active feature window: Control-layer setup and orientation
+
+## Parked
+
+This project is **PARKED** as of 2026-07-27, awaiting the Conviction Packet.
+
+Setup is complete and validated under `precode/`. The pause is deliberate, not a
+blocker, failure, or drift. Intake cannot start because the Conviction Packet does
+not exist yet.
+
+- Parked because: the Conviction Packet is not ready.
+- B001 remains `in_progress`. It was not accepted, closed, or transitioned.
+- `scripts/session-close.sh` was deliberately not run.
+
+### Next Safe Action When The Conviction Packet Arrives
+
+Run **Local Source Intake**, using `tasks/reference/LOCAL-SOURCE-INTAKE-PROTOCOL.md`.
+
+This matches the documented order in `tasks/templates/PRODUCT-IDEATION-WORKBOOK.md`:
+`Conviction Packet -> Local Source Intake`.
+
+Local Source Intake produces a reviewed source summary. It is evidence only. It
+does not approve a PRD, activate a bead, or authorize implementation.
+
+### Explicitly Not The Next Action
+
+- Not a PRD. A PRD shard comes after intake and human review, not before.
+- Not beads. No bead may be activated from a parked state.
+- Not code. No application code, no `frontend/`, no `backend/`.
+- Not bead acceptance or transition for B001.
 
 ## Done When
 
@@ -59,10 +92,15 @@ Last updated: 2026-07-24
 
 ## Next Up
 
-- Adapt `PROJECT-CONTEXT.md` and `CODEBASE-GUIDE.md` to describe Snap Camp and the
-  `precode/` topology, then stop for human review.
-- Propose the first product PRD shard without activating it. A next bead becomes
-  active only through an explicitly approved transition.
+Held while parked. Nothing below starts without the Conviction Packet and explicit
+human approval.
+
+- On unpark: run Local Source Intake on the Conviction Packet and produce a source
+  summary for review. Stop there.
+- Still outstanding from B001: adapt `PROJECT-CONTEXT.md` and `CODEBASE-GUIDE.md`
+  to describe Snap Camp and the `precode/` topology, then stop for human review.
+- A first product PRD shard may be proposed only after intake is reviewed. A next
+  bead becomes active only through an explicitly approved transition.
 
 ## Open Questions
 
