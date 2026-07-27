@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# Version: v0.1.3
+# Last updated: 2026-06-09
+# Owner: PrecodeOS
+# Created by Dan Sears / Recode.
+# SPDX-License-Identifier: Apache-2.0
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+python3 scripts/update-bead-closeout.py
+python3 scripts/os-health.py
+loop_health_json="$(python3 scripts/loop-health.py --json)"
+python3 - "$loop_health_json" <<'PY'
+import json
+import sys
+
+payload = json.loads(sys.argv[1])
+print(f"Build Loop Health: {payload.get('status', 'Watch')} - {payload.get('next_move', 'Run python3 scripts/loop-health.py --verbose for details.')}")
+PY
+bash scripts/record-check.sh -- bash scripts/validate-memory.sh --session-close
+python3 scripts/update-bead-closeout.py
+python3 scripts/os-health.py
+python3 scripts/bead-transition.py
+python3 - <<'PY'
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path("scripts").resolve()))
+
+from os_compiler import compile_state, repo_root
+
+state = compile_state(repo_root())
+completion = state.get("completion_handoff", {})
+details = completion.get("details", {})
+warnings = completion.get("warnings") or []
+
+print("Completion And Handoff Readiness")
+print(f"- Closeout status: {details.get('closeout_status', 'unknown')}")
+print(f"- Promotion status: {details.get('promotion_status', 'unknown')}")
+print(f"- Manual verification: {details.get('manual_verification', 'unknown')}")
+print(f"- Review decision: {details.get('review_decision', 'unknown')}")
+print(f"- Next safe action: {details.get('next_safe_action', 'unknown')}")
+blockers = details.get("promotion_blockers") or []
+if blockers:
+    print("- Promotion blockers:")
+    for blocker in blockers[:8]:
+        print(f"  - {blocker}")
+if warnings:
+    print("- Completion/handoff warnings:")
+    for warning in warnings[:8]:
+        print(f"  - {warning}")
+PY
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")"
+state_json="$(python3 scripts/execution-state.py "$repo_root")"
+current_bead="$(python3 - "$state_json" <<'PY'
+import json
+import sys
+
+state = json.loads(sys.argv[1])
+print(state.get("current_bead") or "")
+PY
+)"
+
+cat <<'EOF'
+PrecodeOS Session Close
+- tasks/todo.md should already be rewritten as the current execution contract
+- the active bead should already reflect the current stop state
+- the active bead should already include Closeout Evidence generated from recorded command results
+- OS-HEALTH.md and logs/os-health.json have been regenerated
+- shared memory validation passed
+- ready for branch review, handoff, or stop
+EOF
+
+bash scripts/log-loop-event.sh --log loop-runs --event session-close --bead "$current_bead" --branch "$branch" --status pass
+python3 scripts/update-bead-build-journal.py --append
+python3 scripts/update-learning-diary.py --append
+python3 scripts/os-health.py

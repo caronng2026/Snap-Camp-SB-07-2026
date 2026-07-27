@@ -1,0 +1,544 @@
+# PrecodeOS Troubleshooting
+<!-- ANCHOR: precode-troubleshooting -->
+
+> AUTHORITY: Public symptom-first troubleshooting reference for common first-time PrecodeOS setup, validation, and first-use confusion.
+> NOT_AUTHORITY: Active memory, product decisions, task selection, PRD approval, implementation acceptance, destructive repair approval, generated evidence truth, private support operations, or automatic recovery policy.
+> LOAD_WHEN: A user, support engineer, or agent is confused by setup state, active memory, current bead, generated reports, copied files, validation output, or first-session behavior.
+> CLASS: reference
+
+Creator: Dan Sears / Recode
+License: Apache-2.0
+Copyright: (c) 2026 Dan Sears / Recode
+Document version: v0.1.22
+Last updated: 2026-07-18
+
+## Purpose
+
+Use this guide when PrecodeOS feels confusing or broken.
+
+This guide is the symptom lookup. The Recovery Protocol owns the full recovery contract, and the Support Runbook is for someone helping another user. Do not read all three as competing recovery authorities.
+
+The safe troubleshooting posture is:
+
+- stop before making the problem larger
+- describe the symptom in plain English
+- identify the owner file or generated report
+- run read-only or advisory checks first
+- repair source files, not generated reports
+- validate before resuming
+
+This guide helps route common first-time issues. It does not approve destructive commands, broad overwrites, task transitions, app-code changes, external mutations, or edits to secrets and private data.
+
+First-reader route: use Guided Setup when PrecodeOS is not installed, Daily Cockpit when normal work is ready, Daily Cockpit `Ideation:` when the only issue is a rough idea, and this guide when setup, state, checks, generated reports, or first-session behavior feel broken or confusing.
+
+If troubleshooting shows that setup is valid and the user is only overwhelmed by the first working session, route back to `docs/PRECODE-DAILY-COCKPIT.md` or the compact `tasks/templates/PRECODE-FIRST-SESSION-CARD.md`. The card is a prompt/checklist aid only, not recovery authority or setup approval.
+
+## First Move
+
+If you do not know which symptom applies, say:
+
+```text
+I am stuck, help me.
+```
+
+The agent should respond with a prescriptive recovery path before editing:
+
+- restate the symptom in plain English, or say it is not known yet
+- make the first safe move explicit: stop implementation and diagnose before repair
+- name the likely owner surface, or say it is unknown until active memory and checks are inspected
+- run or recommend up to three read-only or advisory checks
+- give the next safe prompt or action
+- state forbidden actions: no delete, overwrite, regenerate, transition approval, rollback, setup/update mutation, or destructive command without explicit approval
+
+Ask the agent:
+
+```text
+Stop implementation. Tell me what symptom we are troubleshooting, which Precode files or generated reports are involved, what read-only checks you will use first, and what you will not change without approval.
+```
+
+If the agent cannot explain the current state, reload active memory if it exists:
+
+```text
+Load only AGENT.md, DECISIONS.md, and tasks/todo.md. Then explain the active bead, primary authority, files in play, checks, stop conditions, and blockers.
+```
+
+For small repair claims, ask for stable-fix eligibility:
+
+```text
+Run next-step stable-fix eligibility and tell me the classification, required route, warnings, and why it is advisory only.
+```
+
+Use the result as routing help only. `eligible_stable_fix` can continue inside the current bead after recorded proof. `needs_evidence` needs verification. `recovery_repair` stays in the Recovery Protocol. `broader_change` needs release readiness, a PRD, or a normal bead. None of these classifications approve mutation, acceptance, release, rollback, transition, setup, or update behavior.
+
+Before editing a repair that appears eligible, ask for the Bugfix Spec Lane. The agent should name current behavior, expected behavior, unchanged behavior, owner file, root cause if known, fix approach, regression proof, and route decision. If the owner file, route, or proof path is unclear, stop before editing.
+
+If you can name the symptom but not the repair path, use the No-Engineer Fallback Prompt Pack in `tasks/reference/PROMPT-PATTERNS.md`. It covers agent-lost, checks-failed, app-will-not-start, approved-too-much, copied-wrong-files, and stop-or-continue moments. These prompts route back to the Recovery Protocol and do not approve edits, deletion, overwrite, regeneration, rollback, setup/update mutation, transition approval, app-code changes, secrets handling, external mutation, or destructive commands.
+
+If repeated tool failures, stale closeout evidence, generated refresh gaps, or memory/context warnings keep recurring, ask for Session Friction Review:
+
+```text
+Run python3 scripts/session-friction-check.py. Show repeated tool failures, missing failure categories, stale evidence, generated-refresh gaps, memory/context pressure, and any no-safe-evidence result. Treat the output as generated evidence only.
+```
+
+Session Friction Review does not repair anything, approve commands, create memory cards, edit owner files, choose tasks, approve PRDs, activate beads, or accept implementation. Use it to decide whether a human should create a command-pattern note, reviewed memory candidate, or protocol follow-up.
+
+## Symptom Lookup
+
+### "I Don't Know What Precode Wants Me To Do Next"
+
+Likely causes:
+
+- session has not been started from active memory
+- generated next-step output is being treated as authority
+- active bead is unclear or missing
+- the user is jumping from setup into implementation too early
+
+First checks:
+
+```bash
+bash scripts/session-start.sh
+python3 scripts/next-step.py
+```
+
+Safe path:
+
+- ask the agent to explain active memory, active bead, primary authority, checks, and stop conditions
+- treat `next-step` as generated guidance only
+- do not approve a transition or start coding until the active bead is clear
+
+Stop if the agent cannot explain the current bead in plain English.
+
+### Active Bead Or `tasks/todo.md` Is Confusing
+
+Likely causes:
+
+- `tasks/todo.md` does not match the in-progress bead
+- more than one bead appears active
+- a copied setup left stale task state from another repo
+- a generated report is being used instead of active memory
+
+First checks:
+
+```bash
+bash scripts/validate-memory.sh
+python3 scripts/state-check.py
+```
+
+Safe path:
+
+- compare `tasks/todo.md` with the bead it names
+- confirm there is only one active bead
+- repair source state before refreshing generated reports
+- use `tasks/reference/RECOVERY-PROTOCOL.md` if state is broken
+
+Do not continue implementation while the active bead is unclear.
+
+### Generated Reports Are Being Treated As Authority
+
+Likely reports:
+
+- `OS-HEALTH.md`
+- `PRECODE-HELP.md`
+- `PROGRESS.md`
+- `logs/*.md`
+- `logs/*.json`
+- `logs/*.jsonl`
+
+First checks:
+
+```bash
+python3 scripts/state-check.py
+python3 scripts/workflow-check.py
+```
+
+Safe path:
+
+- identify which source files the report summarizes
+- repair source files first if needed
+- refresh generated reports only after source state is coherent
+- return to active memory and the active bead for decisions
+
+Do not hand-edit generated Markdown to make it look correct.
+
+### Wrong Source Folder Or Target Folder
+
+Likely causes:
+
+- the PrecodeOS package checkout and target project folder were mixed up
+- commands were run from the package source instead of the target project
+- a user treated PrecodeOS itself as the app to execute
+
+First checks:
+
+```bash
+pwd
+git status
+find . -maxdepth 2 -type f | sort
+python3 scripts/bootstrap-check.py --source <precode-package-root> --target <target-project-root>
+python3 scripts/bootstrap-check.py --source <precode-package-root> --target <target-project-root> --preview-manifest
+python3 scripts/bootstrap-check.py --source <precode-package-root> --target <target-project-root> --supervised-setup-plan
+python3 scripts/bootstrap-check.py --source <precode-package-root> --target <target-project-root> --supervised-setup-plan --apply-supervised-setup --approve-action <SP-ID>
+```
+
+Safe path:
+
+- name the package source and target project explicitly
+- stop setup until both folders are clear
+- use Bootstrap Confidence output to identify target kind, conflicts, missing dependencies, and the first safe next action
+- use the manifest dry-run preview to identify candidate copy, adaptation, preserve, exclusion, blocked, and deferred actions without mutating the target
+- use the supervised setup plan for action IDs, approval gates, exclusions, blockers, and validation steps before approving manual setup work
+- use supervised setup apply only for approved `review_copy_candidate` actions in empty or nearly empty targets
+- use `docs/PRECODE-GUIDED-SETUP.md` for copy groups and exclusions
+
+Do not copy files in either direction until source and target are unambiguous.
+
+### "Where Do My Notes, Docs, Or Screenshots Go?"
+
+Likely causes:
+
+- raw reference material is being mixed into active memory or owner files
+- users are unsure whether evidence belongs inside the PrecodeOS package source
+- screenshots, research, or documents may be private or too bulky to commit casually
+
+Safe path:
+
+- put project-owned raw material in root-level `project-evidence/`
+- read `project-evidence/PROJECT-EVIDENCE-GUIDE.md`
+- treat the folder as evidence only, not active memory, authority, task approval, or coding permission
+- decide per project whether to track or ignore the folder in Git
+- use Local Source Intake before promoting stable conclusions into owner files
+
+Do not put raw evidence inside `tasks/todo.md`, PRDs, beads, active memory, or PrecodeOS package-source folders unless a reviewed conclusion belongs there.
+
+### Copied Excluded Files Or Missed Public Files
+
+Likely causes:
+
+- copied private local planning material, generated reports, generated logs, local editor state, caches, or secrets
+- missed active memory, scripts, task structure, adapters, or owner files
+- used a bulk copy without file-group review
+
+First checks:
+
+```bash
+python3 scripts/file-inventory.py --check
+bash scripts/validate-memory.sh
+```
+
+Safe path:
+
+- compare against `docs/PRECODE-PACKAGE-FILE-INVENTORY.md`
+- remove or ignore excluded material only with user approval
+- copy missing public package files by supervised group
+- re-run validation before first use
+
+Do not delete files, rewrite history, or overwrite conflicts just to make the inventory quiet.
+
+### `validate-memory` Fails
+
+Likely causes:
+
+- missing active memory file
+- broken bead pointer
+- malformed bead or active work metadata
+- duplicate or mismatched `prd_id` / `bead_id`
+- copied stale state from another repo
+
+First check:
+
+```bash
+bash scripts/validate-memory.sh
+```
+
+Safe path:
+
+- read the failure message
+- identify the owner file named by the failure
+- when the failure is a duplicate PRD or bead ID, run `python3 scripts/next-id.py prd` or `python3 scripts/next-id.py bead` to see the next monotonic free ID
+- repair the source file with the smallest safe edit
+- re-run validation
+
+`scripts/next-id.py` suggests only. It does not reserve an ID, rename files, update references, approve PRDs, activate beads, or mutate the repo.
+
+During support-assisted package refresh, duplicate PRD/bead IDs are a refresh blocker. Run `bootstrap-check.py --upgrade-preview` before copying package files, preserve the target project's existing PRDs/beads, and do not copy incoming package development PRDs or beads that collide with target IDs.
+
+Do not patch generated reports as a substitute for fixing active memory.
+
+### Bead ID Or Next Bead Looks Wrong
+
+Likely causes:
+
+- stale memory or old PRD prose named a bead that is already done or superseded
+- an external partner reused a `B###` label that does not match local Precode bead files
+- a generated report, Candidate Queue entry, or near-bead sketch was treated as identity authority
+- the agent guessed the next number instead of checking the live bead files
+
+Safe path:
+
+- run `python3 scripts/next-id.py bead --scan-references`
+- compare the suggested next monotonic ID, duplicate warnings, filename/frontmatter mismatch warnings, and advisory stale-reference warnings
+- derive next work from `tasks/todo.md`, the active bead, approved PRD decomposition or owner-file decision, and current `tasks/beads/*.md`
+- do not reuse gaps, old labels, partner labels, Candidate Queue IDs, generated-report hints, or memory-only `B###` references as bead IDs
+
+The reference scan is advisory. It can surface stale or external labels, but it does not reserve an ID, prove what should be built next, approve a transition, or make prose references authoritative.
+
+### `file-inventory --check` Fails Or Warns
+
+Likely causes:
+
+- new public docs are not listed in the inventory
+- file metadata is missing or stale
+- generated or private files are being considered public
+- expected package files are missing
+
+First check:
+
+```bash
+python3 scripts/file-inventory.py --check
+```
+
+Safe path:
+
+- decide whether the warning is source truth, generated evidence, or a package-boundary issue
+- update `docs/PRECODE-PACKAGE-FILE-INVENTORY.md` when a new public file is intentional
+- keep private local planning material and generated reports out of public setup instructions
+
+Do not treat an advisory inventory warning as task selection or transition approval.
+
+### Existing Project Has Conflict Or Overwrite Risk
+
+Likely conflicts:
+
+- `README.md`
+- product, architecture, API, security, or data-model docs
+- CI files
+- package manager files
+- app source code
+- environment files
+
+First checks:
+
+```bash
+git status
+find . -maxdepth 2 -type f | sort
+python3 scripts/bootstrap-check.py --source <precode-package-root> --target <target-project-root>
+python3 scripts/existing-repo-intake.py --source <precode-package-root> --target <target-project-root>
+```
+
+Safe path:
+
+- name each conflict before editing
+- preserve existing project files
+- use Existing Repo Intake to summarize repo topology, app directories, stack, likely checks, sensitive surfaces, owner-file gaps, and conflicts
+- propose how existing facts map into Precode owner files
+- stop for approval before changing docs, CI, hooks, package files, or app code
+
+Do not flatten an existing project into the Precode package shape. Existing Repo Intake output is evidence only; it does not approve copying, owner-file adaptation, check execution, PRD approval, bead activation, or app-code edits.
+
+### Agent Starts Coding Before Setup Or Orientation Is Complete
+
+Likely causes:
+
+- the user asked for implementation before setup validation
+- the agent skipped active memory
+- the active bead is setup, but the agent widened scope
+
+First checks:
+
+```bash
+bash scripts/validate-memory.sh
+python3 scripts/files-in-play-check.py
+python3 scripts/workflow-check.py
+```
+
+Safe path:
+
+- stop implementation
+- ask the agent to restate the active bead and files in play
+- finish setup or orientation first
+- create or approve an implementation bead only through the normal Precode flow
+
+Do not let early coding become implicit approval.
+
+### Claude Checkpoint Claims The Bead Is Approved
+
+Likely causes:
+
+- Claude treated a checkpoint or completion summary as acceptance
+- manual verification was claimed without a human or reproducible check actually verifying it
+- the distinction between bead acceptance and next-bead transition was blurred
+- chat confidence was treated as recorded evidence
+
+First checks:
+
+```bash
+python3 scripts/bead-transition.py --json
+python3 scripts/completion-check.py
+git status --short
+```
+
+Safe path:
+
+- ask for the exact transcript around the checkpoint and claimed approval
+- compare the claim with Closeout Evidence and `logs/check-results.jsonl`
+- treat invented or overstated manual verification as untrusted evidence
+- repair Closeout Evidence with what was actually checked, who checked it, the environment, result, and remaining uncertainty
+- use `revise`, `blocked`, or `manual_testing` when proof is missing
+
+Do not activate a next bead, rewrite history, or accept the bead just because Claude says the checkpoint passed. `bash scripts/checkpoint.sh` reports state; only explicit approval of `python3 scripts/bead-transition.py --approve` may promote the next bead.
+
+### Already-Implemented Bead Needs Reversal
+
+Likely causes:
+
+- the implemented behavior proved wrong, obsolete, or harmful after acceptance
+- a later owner-file decision superseded the old bead
+- the work needs a deliberate undo path, not casual cleanup
+
+First checks:
+
+```bash
+python3 scripts/completion-check.py
+git status --short
+```
+
+Safe path:
+
+- inspect the superseded bead, Closeout Evidence, recorded checks, and current owner file
+- name the reversal target, reversal reason, preserved behavior, checks, manual verification, and approvals still required
+- create or propose a separate reversal bead before implementation
+- record fresh proof and review before acceptance
+
+Do not reopen a `done` bead, delete evidence, rewrite transition logs, treat Git revert as proof, approve rollback, or mutate setup/update behavior. Git revert may be one implementation step inside an approved reversal bead, but it is not completion evidence by itself.
+
+### Local App Will Not Start Or Loads Too Slowly
+
+Likely causes:
+
+- commands are being run from the wrong folder
+- dependencies are missing or stale
+- the dev server is already running, hung, or on a different port
+- the project has not recorded its real app directory or checks
+- support is treating PrecodeOS itself as the app runtime
+
+First checks:
+
+```bash
+pwd
+git status
+ls
+```
+
+If the project has known package scripts, inspect them before running anything that installs or rewrites files.
+
+Safe path:
+
+- confirm whether this is the PrecodeOS package source or the builder's target app
+- identify the app directory and expected dev command from `PROJECT-CONTEXT.md`, package files, or existing docs
+- restart or rerun only the narrow local command needed for the builder's app
+- record any missing setup fact in the proper owner file after user approval
+
+Do not install dependencies, change package files, rewrite configuration, or edit app code unless the user approves a narrow technical fix.
+
+### Auth, Login, Or Onboarding Blocks A Demo
+
+Likely causes:
+
+- test credentials or accounts were not prepared
+- onboarding is being shown even though it is not the demo focus
+- auth setup depends on secrets, dashboards, or external services
+- support is trying to solve a product-flow decision as a technical bug
+
+First checks:
+
+```bash
+git status
+```
+
+Safe path:
+
+- ask whether auth or onboarding is core to the product being demonstrated
+- if not core, help the builder reach the value-bearing screen without changing product scope
+- if credentials, dashboard setup, or secrets are involved, stop and ask for explicit user-controlled handling
+- if the auth flow itself is the feature, route scope and acceptance questions back to the builder or instructor
+
+Do not paste secrets into prompts, commit credentials, bypass security casually, or decide that onboarding should be removed from the product.
+
+### Support Is Unsure Who Owns The Blocker
+
+Likely causes:
+
+- the blocker mixes product uncertainty with technical setup
+- the builder is asking support to choose scope, evidence, or acceptance
+- a mentor, instructor, and support engineer are each seeing a different part of the issue
+- the agent is widening a support request into implementation
+
+First checks:
+
+```bash
+bash scripts/session-start.sh
+python3 scripts/next-step.py
+```
+
+Safe path:
+
+- if the blocked decision is product direction, scope, user evidence, or acceptance, route back to builder-owned product work with instructor support
+- if the blocked issue is local setup, repo state, validation, runtime, auth, or a narrow implementation failure, keep it with support
+- if the blocked issue is PrecodeOS package behavior or unclear official guidance, escalate rather than inventing policy
+- name the route in the support closeout so the builder knows where to go next
+
+Do not let technical support become hidden product ownership.
+
+## Process Phase Index
+
+| Phase | Common failure | First guide |
+|---|---|---|
+| Intent capture | Support starts authoring product truth | `docs/PRECODE-SUPPORT-RUNBOOK.md` |
+| Package source setup | Source and target folders are unclear | `docs/PRECODE-GUIDED-SETUP.md` |
+| File copy | Excluded files copied or public files missed | `docs/PRECODE-PACKAGE-FILE-INVENTORY.md` |
+| Owner-file adaptation | Assumptions are written as settled facts | `docs/PRECODE-USER-GUIDE.md` |
+| Validation | Active memory or inventory checks fail | this guide |
+| First session | Current bead or next step is unclear | this guide |
+| Local runtime | App will not start, reloads slowly, or auth blocks a demo | this guide |
+| Repair | Files moved, renamed, overwritten, or generated reports edited | `tasks/reference/RECOVERY-PROTOCOL.md` |
+
+## Script And Check Index
+
+This index is for setup, support, and recovery moments. Beginner daily work should stay with the Daily Cockpit command set first: `session-start.sh`, `next-step.py`, `loop-health.py`, `os-health.py`, and `record-check.sh`. Use this table when a symptom needs a narrower diagnostic command. Command output is evidence or guidance only; it does not approve repair, mutation, acceptance, transition, or task selection.
+
+| Command | Use it when | Remember |
+|---|---|---|
+| `bash scripts/validate-memory.sh` | Active memory, bead pointer, or setup validity is uncertain. | A failure means source state needs attention before work continues. |
+| `python3 scripts/file-inventory.py --check` | Public package files, new docs, copied files, or metadata are uncertain. | Inventory findings are advisory; they do not choose tasks. |
+| `python3 scripts/bootstrap-check.py --source <precode-package-root> --target <target-project-root>` | First setup, source/target folder identity, copy groups, exclusions, conflicts, or first safe setup action are uncertain. | Read-only by default; output is evidence only and does not approve mutation. |
+| `python3 scripts/bootstrap-check.py --source <precode-package-root> --target <target-project-root> --preview-manifest` | Source and target are clear enough to preview candidate setup actions before mutation. | Dry-run evidence only; not copy permission, install permission, release-channel metadata, package-manager behavior, rollback automation, hook setup, CI setup, active-memory edits, or app-code edits. |
+| `python3 scripts/bootstrap-check.py --source <precode-package-root> --target <target-project-root> --supervised-setup-plan` | Source and target are clear enough to show a setup checklist before manual setup approval. | Setup-plan evidence only; not copy permission, owner-file adaptation approval, install permission, release-channel metadata, package-manager behavior, rollback automation, hook setup, CI setup, active-memory edits, or app-code edits. |
+| `python3 scripts/bootstrap-check.py --source <precode-package-root> --target <target-project-root> --supervised-setup-plan --apply-supervised-setup --approve-action <SP-ID>` | Empty or nearly empty target setup has a reviewed copy action ID the user approves. | Copies only approved `review_copy_candidate` actions; not owner-file adaptation, existing-repo mutation, overwrite permission, hook setup, CI setup, app commands, app-code edits, release-channel metadata, package-manager behavior, rollback automation, or a CLI. |
+| `python3 scripts/bootstrap-check.py --source <precode-package-root> --target <target-project-root> --existing-project-adaptation-plan` | Existing Repo Intake has been reviewed and the user needs an owner-file adaptation checklist. | Evidence only; not owner-file edit approval, copy permission, hook setup, CI setup, app commands, app-code edits, release-channel metadata, package-manager behavior, or rollback automation. |
+| `python3 scripts/bootstrap-check.py --source <precode-package-root> --target <target-project-root> --upgrade-preview` | Target already has Precode active memory and package setup/update state needs comparison. | Evidence only; classifies package state, reports PRD/bead identity collisions, and does not approve package updates, dirty-file overwrites, owner-file adaptation, hooks, CI, release channels, package-manager behavior, or rollback automation. |
+| `python3 scripts/bootstrap-check.py --source <precode-package-root> --target <target-project-root> --upgrade-preview --apply-upgrade-preview --approve-action <UP-ID>` | Existing Precode target has a missing package-owned file marked `review_package_copy_candidate` and the user approves that action ID. | Copies only approved missing package-owned files; refuses dirty/unknown package states, identity collisions, overwrites, owner-file adaptation, hooks, CI, app commands, app-code edits, release-channel metadata, package-manager behavior, and rollback automation. |
+| `python3 scripts/bootstrap-check.py --source <precode-package-root> --target <target-project-root> --recovery-guidance` | Setup is partial, confusing, or failed and support needs the next safe diagnostic path. | Guidance only; may recommend validation or preview commands but does not automate rollback, destructive cleanup, overwrites, hook setup, CI setup, or setup/update mutation. |
+| `python3 scripts/existing-repo-intake.py --source <precode-package-root> --target <target-project-root>` | Target already has app code, docs, CI, product history, or active work and needs the existing-app adoption branch. | Read-only by default; reports likely checks as future hints only and writes no target files. |
+| `bash scripts/session-start.sh` | Beginning or resetting a session. | It prints context and generated router guidance. |
+| `python3 scripts/next-step.py` | The user asks "what now?" or whether a small repair looks stable-fix eligible. | It is generated guidance, not approval; stable-fix eligibility only routes the next decision. |
+| `python3 scripts/os-health.py` | Multiple warnings are confusing or the user asks why Precode is unhappy. | Refreshes OS Health and the Doctor Dashboard plain-English triage; diagnostics are evidence only, not task selection or approval. |
+| `python3 scripts/state-check.py` | Active bead or task state looks broken. | Repair source files before generated reports. |
+| `python3 scripts/files-in-play-check.py` | Scope may have widened or coding started too early. | It warns; it does not approve edits. |
+| `python3 scripts/workflow-check.py` | The path from setup, idea, PRD, bead, or repair is unclear. | Workflow advice is not task activation. |
+| `python3 scripts/completion-check.py` | Work sounds done but proof, review, or transition state is unclear. | Completion warnings do not accept work. |
+| `python3 scripts/bead-transition.py --json` | A bead sounds accepted or ready to advance, but approval or next-bead state is unclear. | JSON readiness is diagnostic; only explicit `--approve` mutates state. |
+
+## Escalate Or Stop
+
+Stop and ask for explicit user approval before:
+
+- overwriting existing project files
+- editing app code during setup
+- installing Git hooks
+- adding or changing CI
+- deleting copied files
+- moving or renaming Precode files
+- approving a bead transition
+- touching secrets, credentials, billing, dashboard values, deployment settings, auth, payments, or private user data
+
+If the next safe action is unclear, keep the state in troubleshooting or recovery. Do not continue from chat confidence alone.

@@ -44,3 +44,13 @@ Thumbs.db
 # Editor
 .idea/
 *.swp
+
+# Local agent, editor, and IDE state
+.claude/
+
+# Precode generated evidence (keeps the public log guide)
+precode/logs/*
+!precode/logs/LOG-EVIDENCE-TAXONOMY.md
+
+# Generated PRD HTML (regenerate: python3 scripts/prd-html.py)
+precode/tasks/prds-html/
