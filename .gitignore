@@ -52,5 +52,10 @@ Thumbs.db
 precode/logs/*
 !precode/logs/LOG-EVIDENCE-TAXONOMY.md
 
+# Generated Precode reports (rewritten by record-check.sh / os-health.py)
+precode/OS-HEALTH.md
+precode/PRECODE-HELP.md
+precode/PROGRESS.md
+
 # Generated PRD HTML (regenerate: python3 scripts/prd-html.py)
 precode/tasks/prds-html/

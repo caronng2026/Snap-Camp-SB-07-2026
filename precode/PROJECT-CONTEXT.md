@@ -1,18 +1,49 @@
-# PrecodeOS — Project Context
+# Snap Camp — Project Context
 <!-- ANCHOR: project-context -->
 
-> AUTHORITY: Technical project constitution for stack choices, implementation conventions, architecture guardrails, integration boundaries, and project-specific build rules for PrecodeOS itself.
+> AUTHORITY: Technical project constitution for stack choices, implementation conventions, architecture guardrails, integration boundaries, and project-specific build rules for Snap Camp.
 > NOT_AUTHORITY: Active memory, active task selection, feature requirements, route inventory, schema field definitions, pricing decisions, or generated progress state.
 > LOAD_WHEN: Shaping PRDs, deriving architecture-affecting beads, onboarding an agent, resolving implementation convention questions, or checking whether new work fits the project constitution.
 > CLASS: reference
 
-Creator: Dan Sears / Recode
-Document version: v0.2.11
-Last updated: 2026-07-11
+Creator: Caron Ng
+Adapted from the PrecodeOS `PROJECT-CONTEXT.md` template (Apache-2.0, © 2026 Dan Sears / Recode)
+Document version: v0.3.0
+Last updated: 2026-07-27
+
+## Adaptation Status
+
+Only the Repository Topology and Project Shape sections below have been adapted to
+Snap Camp, under bead `B001`.
+
+Every other section still contains inherited PrecodeOS package content describing
+PrecodeOS itself, not Snap Camp. Treat those sections as **not yet adapted**. They
+will be rewritten once a product definition and stack are approved. Do not rely on
+them as Snap Camp guidance in the meantime.
+
+## Repository Topology
+
+PrecodeOS is installed in the `precode/` subfolder, not at the repository root.
+This is a deliberate project-specific topology, not a PrecodeOS default. See
+`CODEBASE-GUIDE.md` for the full layout.
+
+- Installed Precode root: `precode/`. `AGENT.md`, `DECISIONS.md`,
+  `OPERATING-CONSTRAINTS.md`, `tasks/`, and `scripts/` live there.
+- Paths inside Precode owner files, beads, and protocols are relative to
+  `precode/`.
+- Application code will live in sibling folders at the repository root, alongside
+  `precode/` and never inside it. No application folder exists yet.
+- Validation and session commands must run from `precode/`, not the repository
+  root. See the session-start constraint in `OPERATING-CONSTRAINTS.md`.
+- Agent shims under `precode/` are discovered only when the working directory is
+  inside `precode/`. Whether to mirror them at the repository root is an open
+  question.
+- No Git hooks and no CI are installed. `.github/workflows/` at the repository root
+  does not exist, and a workflow under `precode/.github/` would not run.
 
 ## Purpose
 
-`PROJECT-CONTEXT.md` is the technical project constitution for PrecodeOS itself.
+`PROJECT-CONTEXT.md` is the technical project constitution for Snap Camp.
 
 It gives agents and builders a stable place to look for how this repository builds and verifies the OS without adding another active-memory file.
 
@@ -31,7 +62,9 @@ Use `PRODUCT.md` for builder-facing product direction: product promise, users an
 - Product summary: PrecodeOS is a repo-native control layer for AI coding agents: markdown-canonical, script-enforced, and built to prevent quiet drift. For builders, it functions as a small operating system for AI coding work by showing what matters, what is active, what is proven, and when to stop.
 - Stack: Markdown authority/reference/execution documents; Python 3 compiler, validation, audit, and report scripts; Bash session/check/evidence wrappers; GitHub Actions for repository validation; JSON/JSONL generated evidence in `logs/`.
 - Primary users or roles: Dan Sears / Recode as maintainer and builder; solo non-technical or technical builders adopting PrecodeOS; AI coding agents operating as navigator, explorer, builder, and review roles; reviewers who inspect bead closeout and transition safety.
-- App directory: `.` (the repository root). There is no separate application runtime directory for B000.
+- App directory: none yet. Application code will live in sibling folders of
+  `precode/` at the repository root, once an approved PRD shard defines the first
+  slice. The installed Precode root is `precode/`.
 - Deployment target: GitHub repository distribution and local filesystem use. GitHub Actions runs validation on pull requests and pushes.
 
 ## Operating Principles

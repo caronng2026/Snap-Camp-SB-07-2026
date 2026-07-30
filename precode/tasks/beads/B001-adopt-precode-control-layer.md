@@ -127,18 +127,58 @@ inventory are the available proof.
 
 ## Closeout Evidence
 
-- Checks run and results: pending
-- Evidence source: pending — recorded check output under `logs/` once checks are run
-- Result: pending
-- Manual verification status: pending
-- Files changed: pending
-- Next bead safe to activate: pending
-- Review decision: pending
-- Drift observed: pending
-- Lesson to promote: pending
-- Follow-up bead needed: pending
-- Blocked escape status: not blocked
-- Reference follow-through: pending
+- Checks run: `bash scripts/validate-memory.sh` -> pass (exit 0) at 2026-07-27T18:08:40.003562+00:00; log `logs/check-output/20260727T180839Z-bash-scripts-validate-memory.sh.log` | `python3 scripts/file-inventory.py --check` -> pass (exit 0) at 2026-07-27T18:08:49.254244+00:00; log `logs/check-output/20260727T180849Z-python3-scripts-file-inventory.py-check.log`
+- Result: latest recorded command status is pass (exit 0)
+- Manual verification: checked by Claude (agent) on 2026-07-27 in the local macOS
+  checkout at `precode/`. Verified that `CODEBASE-GUIDE.md` and
+  `PROJECT-CONTEXT.md` state the installed Precode root is `precode/`, that app
+  code belongs in sibling folders at the repository root, and that validation runs
+  from `precode/`. Result: pass. Remaining uncertainty: the wording has not been
+  confirmed by the human builder, and `delegation_mode: human_in_loop` requires
+  that confirmation before this is treated as durable state.
+- Files changed: 6 changed path(s) at last evidence update
+- Next bead: not evaluated — no next bead proposed or activated. Six candidate beads
+  exist as conversation-only proposals classified `not a bead yet`; none is written
+  to `tasks/beads/`.
+- Review decision: **all Done When items verified complete 2026-07-28.** Awaiting
+  human acceptance. This bead is in an `accepted-hold` situation as described in
+  `tasks/beads/BEAD-SCHEMA.md`: closeout evidence is complete, but the bead is held
+  because next-bead transition inputs are not ready. It stays `in_progress` because
+  `scripts/validate-memory.sh` requires exactly one bead `in_progress`, and moving
+  this one to `review` or `done` with no successor would fail validation.
+- Drift observed: **yes — corrected record.** An earlier version of this line said
+  "none"; that was wrong. While this bead was active, work touched
+  `PRODUCT.md`, `DECISIONS.md`, `tasks/prds/PRD-001-daily-inventory-recorder.md`
+  (new), and the repository-root `.gitignore` — all outside the four declared
+  `files_in_play`. That work was individually approved by the builder each time, so
+  it was authorized, but it was product-definition work carried out under a setup
+  bead rather than under its own bead. The scope boundary was real and was crossed.
+- Drift detection gap: `scripts/files-in-play-check.py` did **not** catch the above.
+  It reports `status: warning`, `changed_paths: []`, and
+  `"git status unavailable: workspace root is not a git checkout"`, because it
+  treats `precode/` as the workspace root while `.git` lives one level up. In this
+  subfolder topology the automated drift check is blind, and empty output must not
+  be read as "no drift". Recorded as a known limitation of the `precode/` topology.
+- Lesson to promote: two lessons. (1) `BEAD-SCHEMA.md` lists required bead sections
+  but not the ten Closeout Evidence markers, which live only in
+  `scripts/validate-memory.sh`; a hand-authored bead can pass section checks and
+  still fail on a missing marker. (2) `files-in-play-check.py` is blind when Precode
+  is installed in a subfolder, so files-in-play discipline in this repository is
+  manual until that is addressed. Both belong in `OPERATING-CONSTRAINTS.md` or a
+  validator follow-up.
+- Follow-up bead needed: yes, two. (a) `PROJECT-CONTEXT.md` sections other than
+  Repository Topology and Project Shape still hold inherited PrecodeOS content and
+  need adaptation. (b) The `files-in-play-check.py` blindness above needs either a
+  documented manual compensating practice or a fix.
+- Blocked escape: not needed while status is `in_progress`
+- Reference follow-through: not applicable — no public package or maintainer
+  reference surfaces were changed by this bead.
+- Human contributor: Caron Ng
+- Contributor role: builder and approver
+- Agent/tool surface: Claude Code (Opus 5)
+- Attribution reviewed by: not reviewed
+- Attribution uncertainty: none noted
+- Evidence source: `logs/check-results.jsonl`
 
 ## Handback
 
