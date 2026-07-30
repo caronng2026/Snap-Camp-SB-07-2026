@@ -384,27 +384,91 @@ These are candidates. The stack decision may change all of them.
 
 ## Bead Proposals
 
-Proposals only. **Do not activate any bead until the PRD is approved and the transition is approved.** `B001` is still `in_progress`.
+Proposals only. Decomposition re-run 2026-07-30 against the framework fixed in the
+Architecture Brief. **A proposal is not an activation.** No bead becomes
+`in_progress` without an approved transition, and `B001` currently holds the single
+active slot.
+
+Paths below are bounded to real locations under `frontend/`. The coding agent may
+adjust file names inside the named directories, provided it records the change.
 
 | Proposed bead | Requirement IDs | Done when | Delegation mode | Test strategy | Review context | Primary authority | Verification |
 |---|---|---|---|---|---|---|---|
-| `B###-record-entry-to-daily-log` | `PRD-001-FR01`, `FR02`, `FR03` | A user can enter a SKU and quantity and see the entry appear in today's log | `human_in_loop` | `failing_first` | `fresh_context_recommended` | `PRD-001` | `unit` + `integration` |
-| `B###-consolidate-duplicate-skus` | `PRD-001-FR04`, `UX03` | Repeated SKUs show as one row with a summed total | `human_in_loop` | `failing_first` | `same_session_ok` | `PRD-001` | `unit` |
-| `B###-generate-daily-summary` | `PRD-001-FR05`, `UX04`, `NFR02` | One action produces a file that opens in Excel without repair | `human_in_loop` | `characterization` | `fresh_context_recommended` | `PRD-001` | `manual` |
-| `B###-daily-rollover-and-persistence` | `PRD-001-FR06`, `NFR01` | Entries survive reload; a new day starts empty without destroying prior days | `human_in_loop` | `failing_first` | `same_session_ok` | `PRD-001` | `integration` |
+| `B###-record-entry-to-daily-log` | `FR01`, `FR02`, `FR03`, `UX01`, `UX02`, `SEC02`, `SEC03` | A user enters a SKU and quantity by keyboard alone and sees the entry appear in today's log | `human_in_loop` | `failing_first` | `fresh_context_recommended` | `PRD-001` | `unit` + `integration` |
+| `B###-persist-daily-log` | `NFR01`, `UX05` | Entries survive reload; the active day and last-saved time are displayed | `afk_candidate` | `failing_first` | `same_session_ok` | `PRD-001` | `integration` |
+| `B###-consolidate-duplicate-skus` | `FR04`, `UX03` | Repeated SKUs show as one row with a summed total, visible in the log | `afk_candidate` | `failing_first` | `same_session_ok` | `PRD-001` | `unit` |
+| `B###-generate-xlsx-summary` | `FR05`, `UX04`, `NFR02` | One action produces an `.xlsx` whose SKU column preserves leading zeros | `human_in_loop` | `characterization` | `fresh_context_recommended` | `PRD-001` | `manual` |
+| `B###-daily-rollover` | `FR06` | A new empty log appears at local midnight; prior days remain retrievable | `human_in_loop` | `failing_first` | `same_session_ok` | `PRD-001` | `integration` |
+| `B###-measure-render-performance` | `NFR03` | The 500ms bar at ~200 entries is measured and either confirmed or revised | `human_in_loop` | `characterization` | `same_session_ok` | `PRD-001` | `integration` |
+
+### Bead Detail
+
+**1. `B###-record-entry-to-daily-log`** — `complexity: standard` · `required_planning_depth: brief` · `autonomy_level: supervised`
+Depends on: nothing. Files in play: `frontend/package.json`, `frontend/vite.config.js`, `frontend/index.html`, `frontend/src/`, `frontend/tests/`.
+Checks: unit for entry creation; integration for log render, keyboard-only entry, and post-save focus return; static for no auth dependency and no network call.
+Stop if: `frontend/` creation is not approved · any dependency beyond Vite and Vitest appears · scope reaches consolidation, export, or persistence.
+Absorbs the Vite/Vitest scaffold, because a scaffold-only bead has no observable outcome. This is the largest bead; splitting scaffold from slice remains a reasonable alternative.
+
+**2. `B###-persist-daily-log`** — `complexity: narrow` · `required_planning_depth: brief` · `autonomy_level: bounded-afk`
+Depends on: bead 1. Files in play: `frontend/src/` storage module and log view, `frontend/tests/`.
+Checks: integration for write → reload → entries present; integration for the day label and last-saved timestamp advancing on write.
+Stop if: any sync, account, or server work appears · MongoDB or any database is pulled in from the Forward-Looking Note · multi-device support is requested, which reopens `OQ-11`.
+
+**3. `B###-consolidate-duplicate-skus`** — `complexity: narrow` · `required_planning_depth: brief` · `autonomy_level: bounded-afk`
+Depends on: bead 1. Files in play: `frontend/src/` consolidation module and log view, `frontend/tests/`.
+Checks: unit for duplicates, order-independence, and total preservation; integration for the consolidated row rendering in the log.
+Stop if: consolidation needs a rule not in this PRD, such as case sensitivity, whitespace handling, or near-match grouping · scope drifts toward disambiguating similar items, which is the superseded scope.
+A pure read-time transform, per the Architecture Brief. That is what makes it safe to delegate.
+
+**4. `B###-generate-xlsx-summary`** — `complexity: standard` · `required_planning_depth: brief` · `autonomy_level: supervised`
+Depends on: bead 3, **and** confirmation of the selected `.xlsx` package.
+Files in play: `frontend/src/` export module and log view, `frontend/tests/`, `frontend/package.json`.
+Checks: unit round-trip asserting `00734` exports as text and returns as `00734`; unit that exported rows match the consolidated log; integration asserting zero network requests across a full record-to-export cycle; manual open in real Excel with no repair prompt.
+Stop if: the chosen package fails any of the five selection criteria · any SKU is written as a numeric cell · scope drifts to formatting, multiple sheets, or reporting.
+If the package cannot write text-typed cells, raise an unblocker bead rather than improvising — `OQ-10` and `NFR02` both depend on it.
+
+**5. `B###-daily-rollover`** — `complexity: narrow` · `required_planning_depth: brief` · `autonomy_level: supervised`
+Depends on: bead 2. Files in play: `frontend/src/` daily-log and storage modules, `frontend/tests/`.
+Checks: integration across a two-day fixture confirming a new empty log and the prior day still retrievable.
+Stop if: rollover would delete, overwrite, or prune a prior day. Deletion of user data is a destructive action requiring explicit approval, and the `OQ-6` decision is retain-indefinitely.
+
+**6. `B###-measure-render-performance`** — `bead_kind: review` · `complexity: narrow` · `required_planning_depth: brief` · `autonomy_level: supervised`
+Depends on: beads 1 and 3. Files in play: `frontend/tests/` only; no source changes expected.
+Checks: integration rendering 200 entries and recording the actual time.
+Outcome is a measurement and a decision: confirm the 500ms bar, or revise it in `ACCEPTANCE.md` and this PRD with the measured basis.
+Stop if: meeting the bar would require changing the architecture rather than adjusting the number — that is a PRD amendment, not a tuning exercise.
+
+### Requirement Coverage
+
+Every requirement maps to at least one bead. `SEC01` is cross-cutting: each bead
+checks that fixtures contain no real partner identities or supplier pricing.
+
+| Bead | Requirements |
+|---|---|
+| 1 record entry | `FR01` `FR02` `FR03` `UX01` `UX02` `SEC02` `SEC03` |
+| 2 persist | `NFR01` `UX05` |
+| 3 consolidate | `FR04` `UX03` |
+| 4 export | `FR05` `UX04` `NFR02` `SEC03` |
+| 5 rollover | `FR06` |
+| 6 measure | `NFR03` |
+| all | `SEC01` |
 
 ### Smallest First Bead
 
-**`B###-record-entry-to-daily-log`** — enter a SKU and a quantity, and see it appear in today's log.
+**`B###-record-entry-to-daily-log`** — enter a SKU and a quantity by keyboard, and
+see it appear in today's log.
 
-Why this one is smallest and still useful:
+- A **vertical slice**, not a layer: the user sees a real result, so it produces
+  observable feedback rather than scaffolding.
+- One observable outcome, one primary authority, one main verification strategy,
+  and — now that the framework is fixed — genuinely bounded files in play.
+- Excludes consolidation, export, persistence, and rollover; each is its own bead.
+- If entry speed fails the `UX01` bar, that is learned before anything is built on
+  top of it.
 
-- It is a **vertical slice**, not a layer. The user sees a real result, so it produces observable feedback rather than scaffolding.
-- It carries **one observable outcome**, one authority file, one verification strategy, and bounded files in play — the Decomposition Review criteria.
-- It **excludes** consolidation, export, and rollover, each of which is its own bead.
-- If it fails the speed bar, that is learned before any consolidation or export work is built on top.
-
-It cannot be created yet. Three things must happen first: this PRD moves to `approved`; a stack is chosen so "files in play" is real; and `B001` reaches a transition decision, because only one bead may be `in_progress`.
+Remaining before it can be created and activated: approve creation of `frontend/`,
+and transition `B001`, which holds the single active slot. Only one bead may be
+`in_progress`, so the successor must be activated in the same transition.
 
 ## Compilation Notes
 
