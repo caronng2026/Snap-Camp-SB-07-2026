@@ -1,6 +1,6 @@
 ---
 prd_id: PRD-001
-status: draft
+status: approved
 owner: user
 risk_level: low
 feature_link: TBD
@@ -23,12 +23,16 @@ Last updated: 2026-07-28
 ## State
 
 - ID: `PRD-001`
-- Status: `draft`
+- Status: `approved`
 - Owner: `user`
 - Risk level: `low`
-- Last updated: `2026-07-28`
+- Last updated: `2026-07-30`
 
-**This PRD is a draft. It is not approved. No bead may be created from it yet.**
+**Approved 2026-07-30 by Caron Ng.** Approval means the product destination is
+stable enough to compile into `FEATURES.md` and to shape. It is **not** architecture
+permission and **not** permission to code. Architecture Shaping is still outstanding
+and must run before bead derivation. No bead may be activated without an approved
+transition.
 
 ## Feature Link
 
@@ -213,6 +217,17 @@ Agent-facing translation of the builder-approved product story.
 | `PRD-001-FR06` | WHEN a new business day begins THE SYSTEM SHALL present an empty log without destroying the prior day | `integration` | day-rollover test | roll the date, confirm empty log and prior day retrievable | two-day fixture | bead closeout | real multi-day habit |
 | `PRD-001-NFR01` | WHEN the app is reloaded THE SYSTEM SHALL still show today's entries | `integration` | persistence test | reload, confirm entries remain | one dummy day | bead closeout | durability across devices |
 | `PRD-001-SEC01` | Repository and fixtures contain no real partner identities or supplier pricing | `static` | grep for partner names in fixtures | review fixtures before commit | — | bead closeout | that external copies are clean |
+| `PRD-001-UX01` | WHEN the app has focus THE SYSTEM SHALL accept a complete entry (SKU → quantity → save) using the keyboard alone, with no mouse required, returning focus to the SKU field after each save | `integration` | tab-order assertion; post-save focus returns to SKU field | time 10 consecutive entries against 10 handwritten lines | 10 dummy SKUs | bead closeout | that it feels faster in a real shop, under interruption, with hands full |
+| `PRD-001-UX02` | WHEN an entry is saved THE SYSTEM SHALL show it in today's log without a page reload | `integration` | assert entry visible after save with no navigation event | save one entry and watch it appear | 1 dummy entry | bead closeout | that the confirmation is noticeable in peripheral vision |
+| `PRD-001-UX03` | WHEN a SKU has multiple entries THE SYSTEM SHALL display the consolidated total in the log itself, not only in the export | `integration` | enter one SKU three times; assert a single visible row with the summed total | confirm the total is readable without exporting | duplicate-SKU fixture | bead closeout | that users trust the merge enough to stop re-checking by hand |
+| `PRD-001-UX04` | WHEN viewing today's log THE SYSTEM SHALL expose the generate-summary action in one step | `integration` | assert the action is present and a single activation triggers the export | locate and trigger it without instruction | one full dummy day | bead closeout | discoverability for a first-time user |
+| `PRD-001-UX05` | THE SYSTEM SHALL display which business day's log is active and when it last saved, updating the timestamp on every write | `integration` | assert the day label is correct and the timestamp advances after a write | add an entry and confirm the timestamp moves | two-day fixture | bead closeout | that the user notices the indicator before losing data |
+| `PRD-001-SEC02` | THE SYSTEM SHALL contain no authentication, account, or personal-data collection | `static` | no auth dependency in the manifest; no personal-data fields in the data model | review the data model before closeout | — | bead closeout | that future features will not introduce them |
+| `PRD-001-SEC03` | WHEN completing a full record-to-export cycle THE SYSTEM SHALL make no external network request | `integration` | assert zero outbound requests during the cycle | check the browser network panel end to end | one full dummy day | bead closeout | absence of requests in code paths the test does not exercise |
+| `PRD-001-NFR02` | WHEN the summary is opened in Excel THE SYSTEM SHALL produce no repair prompt, with the SKU column typed as text | `manual` | assert `.xlsx` structural validity and SKU cells typed as text | open in real Excel; confirm `00734` reads as `00734` | leading-zero SKU fixture | bead closeout | behaviour across other Excel versions or LibreOffice |
+| `PRD-001-NFR03` | WHEN today's log holds ~200 entries THE SYSTEM SHALL render the log in under 500ms and keep entry responsive. **Provisional bar — see note below.** | `integration` | render 200 entries and assert the 500ms budget | scroll and add an entry with 200 present | 200 dummy entries | bead closeout | behaviour at the anchor partner's full 1,000+ SKU catalogue |
+
+**`NFR03` is a provisional bar, not a final requirement.** The 500ms figure was set before any framework was chosen and before real render behaviour was measured. It must be revisited during Architecture Shaping and may be revised up or down against the chosen framework. Do not treat it as a fixed requirement that has been validated; it is a starting number recorded so the requirement is testable rather than vague.
 
 **None of the above is proof until run through `bash scripts/record-check.sh -- <command>` and recorded in bead Closeout Evidence.**
 
@@ -345,6 +360,28 @@ It cannot be created yet. Three things must happen first: this PRD moves to `app
 
 ## Approval
 
-- Approved by: *not approved*
-- Approved on: *not approved*
-- Approval notes: draft for review. Four blocking open questions remain, `PRODUCT.md` has not been adapted, and Architecture Shaping has not been done. This PRD must not be used as the source for implementation beads while `status: draft`.
+- Approved by: Caron Ng
+- Approved on: 2026-07-30
+- Approval notes: Approved after a full read by the builder. All 14 approval
+  criteria in `tasks/reference/PRD-PROTOCOL.md` section 7 were checked and pass.
+  All 17 requirements carry an acceptance oracle. No blocking open questions
+  remain: OQ-2, OQ-3, OQ-4, OQ-5, OQ-10, and OQ-11 are resolved and recorded in
+  `DECISIONS.md`. Three non-blocking detail questions remain open (business-day
+  rollover timing, decimal or negative quantities, entry edit or delete) and may be
+  settled during Architecture Shaping or bead work.
+
+  **Scope of this approval.** Per `PRD-PROTOCOL.md:146`, approval means the product
+  destination is stable enough to compile and shape. It does not approve
+  architecture, dependencies, or implementation.
+
+  **Still required before any bead is derived or activated:**
+  - Compile the feature into `FEATURES.md` (`PRD-PROTOCOL.md` section 8).
+  - Run Architecture Shaping (`PRD-PROTOCOL.md` section 9). Recorded as `needed`;
+    the PRD touches data models and a multi-step workflow, and `files_in_play`
+    cannot be bounded for any bead until a framework is chosen.
+  - Re-run decomposition against the chosen framework.
+  - Approve the `.xlsx` spreadsheet-writing dependency before the export bead.
+  - Revisit the provisional 500ms `NFR03` bar against real render behaviour.
+  - Transition `B001`, which is `in_progress` with complete closeout evidence.
+    Only one bead may be `in_progress`, so the successor must be activated in the
+    same transition.
