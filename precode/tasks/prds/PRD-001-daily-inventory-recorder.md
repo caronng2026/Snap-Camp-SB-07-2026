@@ -271,14 +271,84 @@ Agent-facing translation of the builder-approved product story.
 
 - Project context impact: `material`
 - `PROJECT-CONTEXT.md` loaded: `yes` — Repository Topology and Project Shape are adapted; other sections still hold inherited PrecodeOS content.
-- Architecture Shaping: `needed` — **not yet done.** Stack, platform, and persistence are undecided, and persistence (`PRD-001-NFR01`) plus export (`PRD-001-FR05`) are real architectural choices.
-- Architecture Brief evidence: none yet.
-- Architecture Shaping skip reason: not skipped; outstanding.
+- Architecture Shaping: `completed` 2026-07-30.
+- Architecture Brief evidence: see the `Architecture Brief` section below.
+- Architecture Shaping skip reason: not skipped.
 - Architecture authority updates needed: `ARCHITECTURE.md` needs the app shape and where the app directory sits relative to `precode/`.
 - Route/API authority updates needed: `API.md` only if a server boundary is introduced. A local-only v1 may need none.
 - Schema authority updates needed: `DATA-MODELS.md` needs `Entry` and `DailyLog` shapes.
 - Security authority updates needed: `SECURITY.md` needs the no-real-partner-data rule.
 - Decision log updates needed: `DECISIONS.md` needs the Recorder-over-Tracker pivot, the prototype disposition, the anchor-partner guardrail, and the v2 deferral of transformation and combos.
+
+## Architecture Brief
+
+- Source PRD: `PRD-001`
+- Requirement IDs: all 17
+- Brief status: `evidence_only` — this brief does not approve coding, activate a bead, or become architecture authority by itself.
+- Completed: 2026-07-30, three questions.
+
+### Triggering Risk Surfaces
+
+- Auth/access: none. No accounts, roles, or permissions (`SEC02`).
+- User or private data: none. Inventory counts only; partner identities redacted (`SEC01`).
+- Data model or migration: **triggered.** `Entry` and `DailyLog`, day keying, and a rollover that must not destroy prior days.
+- API, webhook, or background job: none.
+- External service or integration: none. Zero network requests (`SEC03`).
+- Dependency, secret, or environment: **triggered.** One `.xlsx` writer; Vite and Vitest as dev tooling; Node and npm as prerequisites. No secrets, no environment variables.
+- Multi-step workflow or state: **triggered.** record → consolidate → export → roll over.
+- Multi-system coordination: none. Single browser app.
+
+### Boundary Notes
+
+- Data sources and source of truth: browser `localStorage` is the working store. The exported `.xlsx` is the **durable record** — the copy that leaves the browser. If the two disagree, the export is what the user keeps.
+- Integration boundaries: none in v1.
+- API/server boundaries: none. `backend/` stays unbuilt.
+- Auth/access boundary: none.
+- State flow: `DailyLog` keyed by local calendar date. A new key appears automatically at midnight; existing keys are never rewritten or removed by the app. Consolidation is a pure read-time transform over a day's entries, not a mutation.
+- Manual setup or dashboard steps: none.
+- Dependencies or environment needs: Node and npm for development. Runtime dependency is one `.xlsx` writer, selected against criteria and confirmed before use.
+
+### Owner File Impacts
+
+- `ARCHITECTURE.md`: **needs writing.** Currently inherited PrecodeOS content. Should record the Vite/vanilla shape, the four modules, and the pure-function consolidation boundary.
+- `API.md`: **no change.** No server boundary in v1; record that explicitly so its absence is deliberate.
+- `DATA-MODELS.md`: **needs writing.** `Entry` (sku, quantity, timestamp) and `DailyLog` (date key → entries).
+- `SECURITY.md`: **needs writing.** No auth, no PII, no network, plus the partner-redaction rule.
+- `PROJECT-CONTEXT.md`: **needs updating.** Stack fields still describe PrecodeOS; app directory is now `frontend/`.
+- `CODEBASE-GUIDE.md`: **needs updating.** Framework-level naming conventions were deferred pending this decision.
+- PRD amendment: none required. No answer contradicted an existing requirement.
+- `DECISIONS.md`: **done.** Three technical decisions recorded 2026-07-30; `OQ-6` resolved.
+
+### Approval Gates And Stop Conditions
+
+- Approval required before: adding the `.xlsx` package once selected; creating `frontend/`; adding any dependency beyond Vite, Vitest, and the `.xlsx` writer; activating any bead.
+- Stop if: a requirement needs a server, an account, or a network call · the `.xlsx` package fails any of the five criteria · deleting user data becomes necessary.
+- Return to PRD if: multi-device, multi-user, or a database becomes a v1 need — that reopens `OQ-11` and the `backend/` decision.
+- Propose an unblocker bead if: the `.xlsx` writer cannot produce text-typed cells, which would put `OQ-10` and `NFR02` at risk.
+
+### Verification Evidence Expected
+
+- Automated checks: Vitest unit tests for `consolidate()` and `Entry`; integration tests for log render, persistence across reload, day rollover, and zero network requests; a round-trip assertion that `00734` survives export as text.
+- Manual verification: open the export in real Excel; time ten consecutive entries against ten handwritten lines.
+- Sensitive-path proof: none — no sensitive paths in v1.
+- Evidence not sufficient: a passing local test run is not acceptance until recorded through `scripts/record-check.sh` and entered in bead Closeout Evidence.
+
+### Bead Implications
+
+- Required planning depth: drops from `PRD+architecture` to `brief` for most beads now that the framework is fixed and `files_in_play` can finally be bounded to real paths under `frontend/`.
+- Likely slice type: vertical slices through one screen.
+- Run contract needed: no. No sensitive, external, or destructive actions in v1.
+- Candidate first bead shape: scaffold `frontend/` with Vite and Vitest, then record an entry and see it in today's log. Scaffolding is folded in because a scaffold-only bead has no observable outcome.
+- Unresolved blockers: the `.xlsx` package is not yet selected; `NFR03`'s 500ms bar is still unmeasured.
+
+### Do Not Decide Yet
+
+- Repo facts the coding agent must inspect first: current Node and npm versions; whether the chosen `.xlsx` package is present, licensed permissively, and maintained at the time of use.
+- Implementation choices intentionally left to the agent: file and module names inside `frontend/src/`, CSS approach, test file layout, and the internal shape of the `localStorage` serialization — provided the `DailyLog` date-key model and the pure-function consolidation boundary hold.
+
+### Provisional Items Carried Forward
+
+- `NFR03` (200 entries under 500ms) remains **provisional and unmeasured**. Vanilla JS rendering roughly 200 rows would normally sit far inside that budget, but no measurement exists yet. Confirm against the built app during the first rendering bead and revise the number if reality disagrees.
 
 ## Module / Interface Candidates
 

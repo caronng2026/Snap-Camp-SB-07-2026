@@ -85,7 +85,7 @@ Product decisions that are hard decisions belong in `DECISIONS.md`. Link them he
 
 | Bet or theme | State | Source PRD or feature link | Notes |
 |---|---|---|---|
-| Daily Inventory Recorder first slice | `drafting_prd` | `tasks/prds/PRD-001-daily-inventory-recorder.md` | Draft; four blocking open questions |
+| Daily Inventory Recorder first slice | `approved` | `tasks/prds/PRD-001-daily-inventory-recorder.md` | Approved 2026-07-30; compiled into `FEATURES.md`. Architecture Shaping outstanding before beads |
 | SKU transformation | `deferred` | none | Named as the leading v2 wedge |
 | Combo / bundle (kit) items | `deferred` | none | Parked with transformation for v2 |
 | Self-printed QR or bin labels | `deferred` | none | Strong v2 candidate |
