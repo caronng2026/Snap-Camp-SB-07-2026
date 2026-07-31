@@ -1,8 +1,8 @@
 ---
-current_bead: tasks/beads/B004-persist-daily-log.md
+current_bead: tasks/beads/B005-consolidate-duplicate-skus.md
 current_state: in_progress
 build_lane: Daily Inventory Recorder
-active_feature_window: Persistence slice
+active_feature_window: Consolidation slice
 primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
 ---
 # PrecodeOS — Active Work File
@@ -24,28 +24,30 @@ primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
 > Noticed is facts only, never directives or hidden backlog.
 
 Creator: Caron Ng
-Document version: v0.4.0
+Document version: v0.5.0
 Last updated: 2026-07-31
 
 ---
 
 ## Current Bead
 
-- `tasks/beads/B004-persist-daily-log.md`
+- `tasks/beads/B005-consolidate-duplicate-skus.md`
 - State: `in_progress`
 - Build lane: `Daily Inventory Recorder`
-- Active feature window: `Persistence slice`
+- Active feature window: `Consolidation slice`
 
 ## Done When
 
-- Entries recorded today are still present after a page reload.
-- Entries are still present after the browser is closed and reopened.
-- The screen shows the active business day and a last-saved time.
-- The last-saved time advances when an entry is recorded.
-- Storage is browser `localStorage` only — no sync, no server, no database.
-- Nothing is written outside the current day's key, and no prior day is modified.
+- `consolidate()` exists as a pure function over one day's entries.
+- Entering the same SKU three times shows one row with the summed quantity.
+- The consolidated total is visible in the log, not only in an export.
+- Consolidation is derived at read time. Original entries remain stored unchanged
+  and inspectable.
+- Different SKUs remain separate rows.
+- The result is order-independent and total-preserving.
+- Consolidation survives a reload, because it is derived from stored entries.
 - All checks below are run and recorded.
-- Consolidation, export, and day rollover are **not** implemented.
+- Export and day rollover are **not** implemented.
 
 ## Primary Authority File
 
@@ -56,7 +58,7 @@ Last updated: 2026-07-31
 - `frontend/src/`
 - `frontend/tests/`
 - `frontend/index.html`
-- `tasks/beads/B004-persist-daily-log.md`
+- `tasks/beads/B005-consolidate-duplicate-skus.md`
 - `tasks/todo.md`
 
 ## Checks To Run
@@ -66,20 +68,21 @@ Last updated: 2026-07-31
 
 ## Explicit Out-of-Scope
 
-- Any sync, account, server, or multi-user work appears.
-- MongoDB or any database is pulled in. The `DECISIONS.md` forward-looking note is
-  context only, not approval.
-- Multi-device support is requested — that reopens `OQ-11` and voids this bead.
-- Storage needs a dependency. `localStorage` needs none.
-- Scope reaches consolidation, export, or day rollover.
-- A stored SKU is read back as a number rather than a string.
-- Deleting or pruning stored data becomes necessary — that is a destructive action
-  requiring explicit approval, and `OQ-6` is retain-indefinitely.
+- Consolidation needs a rule not defined in `DATA-MODELS.md`. Case sensitivity,
+  whitespace handling, and near-match grouping are explicitly **undefined** in v1 —
+  stop and ask rather than inventing a rule.
+- Scope drifts toward telling near-identical items apart. That belongs to the
+  **superseded** Flexible Inventory Tracker scope and is not this product.
+- Consolidation is stored rather than derived. The Architecture Brief fixes it as a
+  read-time transform, and storing it would make the original entries unrecoverable.
+- Any entry is modified or removed to achieve a total.
+- Scope reaches export or day rollover.
+- A SKU is compared as a number rather than a string.
 - Stop condition: pause and ask before crossing any stop condition above.
 
 ## Next Up
 
-- Begin `tasks/beads/B004-persist-daily-log.md` only within its Done When, Files In Play, and Stop If boundaries.
+- Begin `tasks/beads/B005-consolidate-duplicate-skus.md` only within its Done When, Files In Play, and Stop If boundaries.
 - If the bead is too broad, split it before implementation.
 
 ## Open Questions
@@ -88,5 +91,5 @@ Last updated: 2026-07-31
 
 ## Noticed
 
-- Promoted from `tasks/beads/B002-record-entry-to-daily-log.md` to `tasks/beads/B004-persist-daily-log.md` by `python3 scripts/bead-transition.py --approve` at 2026-07-31 19:12 UTC.
+- Promoted from `tasks/beads/B004-persist-daily-log.md` to `tasks/beads/B005-consolidate-duplicate-skus.md` by `python3 scripts/bead-transition.py --approve` at 2026-07-31 19:33 UTC.
 

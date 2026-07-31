@@ -1,6 +1,6 @@
 /**
  * Daily Inventory Recorder — entry screen.
- * Beads: B002, B004. Requirements: FR01-FR03, UX01, UX02, UX05, NFR01, SEC02, SEC03.
+ * Beads: B002, B004, B005. Requirements: FR01-FR04, UX01-UX03, UX05, NFR01, SEC02, SEC03.
  *
  * Entries persist to browser localStorage so a reload does not lose the day
  * (NFR01), and the screen shows the active day and when it last saved (UX05).
@@ -10,6 +10,7 @@
 import { createEntry } from './entry.js'
 import { addEntry, entriesFor, dateKeyFor } from './dailyLog.js'
 import { loadState, saveState } from './storage.js'
+import { consolidate } from './consolidate.js'
 
 /**
  * Wires the screen to a log.
@@ -47,23 +48,28 @@ export function mount(root, storage = globalThis.localStorage) {
   }
 
   function render() {
-    const entries = entriesFor(log, dayKey)
+    // Consolidated at read time — the stored entries are never rewritten (FR04).
+    const rows = consolidate(entriesFor(log, dayKey))
     rowsEl.textContent = ''
     // Built with textContent, never innerHTML — a SKU is user input.
-    for (const entry of entries) {
+    for (const row of rows) {
       const tr = document.createElement('tr')
       const sku = document.createElement('td')
       sku.className = 'sku'
-      sku.textContent = entry.sku
+      sku.textContent = row.sku
       const qty = document.createElement('td')
       qty.className = 'qty'
-      qty.textContent = String(entry.quantity)
+      qty.textContent = String(row.quantity)
+      const count = document.createElement('td')
+      count.className = 'qty count'
+      // Shown so the merge is visible rather than something to take on trust (UX03).
+      count.textContent = String(row.entryCount)
       const at = document.createElement('td')
-      at.textContent = new Date(entry.timestamp).toLocaleTimeString()
-      tr.append(sku, qty, at)
+      at.textContent = new Date(row.lastRecordedAt).toLocaleTimeString()
+      tr.append(sku, qty, count, at)
       rowsEl.append(tr)
     }
-    emptyEl.hidden = entries.length > 0
+    emptyEl.hidden = rows.length > 0
   }
 
   form.addEventListener('submit', (event) => {

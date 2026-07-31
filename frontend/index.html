@@ -67,6 +67,7 @@
       th, td { text-align: left; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--line); }
       th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
       td.qty, th.qty { text-align: right; font-variant-numeric: tabular-nums; }
+      td.count { color: var(--muted); }
       td.sku { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
       #empty { color: var(--muted); font-size: 0.9375rem; }
       @media (prefers-color-scheme: dark) {
@@ -99,12 +100,13 @@
       <p id="error" role="alert"></p>
 
       <table id="log">
-        <caption>Today's inventory log</caption>
+        <caption>Today's inventory log &middot; repeated SKUs are combined automatically</caption>
         <thead>
           <tr>
             <th scope="col">SKU</th>
-            <th scope="col" class="qty">Quantity</th>
-            <th scope="col">Recorded</th>
+            <th scope="col" class="qty">Total</th>
+            <th scope="col" class="qty">Entries</th>
+            <th scope="col">Last recorded</th>
           </tr>
         </thead>
         <tbody id="log-rows"></tbody>

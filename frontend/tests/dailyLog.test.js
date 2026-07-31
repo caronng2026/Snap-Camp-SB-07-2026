@@ -33,7 +33,7 @@ describe('addEntry — PRD-001-FR03', () => {
     log = addEntry(log, createEntry('a', 1), '2026-07-31')
     log = addEntry(log, createEntry('b', 2), '2026-07-31')
     log = addEntry(log, createEntry('c', 3), '2026-07-31')
-    expect(entriesFor(log, '2026-07-31').map((e) => e.sku)).toEqual(['a', 'b', 'c'])
+    expect(entriesFor(log, '2026-07-31').map((e) => e.sku)).toEqual(['A', 'B', 'C'])
   })
 
   it('keeps separate days separate', () => {

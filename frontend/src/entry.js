@@ -2,19 +2,23 @@
  * Entry — one record of an item and how many moved.
  * Owner file: precode/DATA-MODELS.md
  *
- * The `sku` is free text and is always a string. Leading zeros are stripped when
- * the SKU is entirely digits, because `00734` and `734` are the same item
- * (amended 2026-07-31, reversing the original OQ-10 answer). A SKU that is not
- * entirely digits is stored exactly as typed.
+ * The `sku` is free text and is always a string. It is normalised once, here, on
+ * entry, so storage, consolidation, and export all see the same value and need no
+ * case, whitespace, or zero handling of their own.
  *
- * Normalisation happens once, here, on entry. Storage, consolidation, and export
- * all see the already-normalised value and need no zero-handling of their own.
+ * Order matters: trim, then upper-case, then strip leading zeros if what remains
+ * is entirely digits. Both rules were set on 2026-07-31 after the builder found
+ * that `00734`/`734` and `ac4-100w`/`AC4-100w` are the same items.
  */
 
-/** `00734` -> `734`, `000` -> `0`, `00A12` -> `00A12`. Never returns a number. */
+/**
+ * `  ac4-100w ` -> `AC4-100W`, `00734` -> `734`, `000` -> `0`, `00A12` -> `00A12`.
+ * Inner spaces are kept. Never returns a number.
+ */
 export function normalizeSku(sku) {
-  if (!/^\d+$/.test(sku)) return sku
-  const stripped = sku.replace(/^0+/, '')
+  const cleaned = sku.trim().toUpperCase()
+  if (!/^\d+$/.test(cleaned)) return cleaned
+  const stripped = cleaned.replace(/^0+/, '')
   return stripped === '' ? '0' : stripped
 }
 

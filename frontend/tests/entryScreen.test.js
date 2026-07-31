@@ -54,14 +54,18 @@ describe('recording an entry — PRD-001-FR03', () => {
     expect(document.querySelector('#log-rows .sku').textContent).toBe('91')
   })
 
-  it('shows 00734 and 734 as the same SKU value', () => {
+  // Amended by B005: 00734 and 734 normalise to the same SKU, so consolidation
+  // now merges them into one row rather than showing two.
+  it('merges 00734 and 734 into a single consolidated row', () => {
     for (const sku of ['00734', '734']) {
       type(document.querySelector('#sku'), sku)
       type(document.querySelector('#quantity'), '1')
       submit()
     }
-    const skus = [...document.querySelectorAll('#log-rows .sku')].map((c) => c.textContent)
-    expect(skus).toEqual(['734', '734'])
+    const rows = document.querySelectorAll('#log-rows tr')
+    expect(rows).toHaveLength(1)
+    expect(rows[0].querySelector('.sku').textContent).toBe('734')
+    expect(rows[0].querySelector('.qty').textContent).toBe('2')
   })
 
   it('appends further entries in order', () => {
@@ -71,7 +75,7 @@ describe('recording an entry — PRD-001-FR03', () => {
       submit()
     }
     const skus = [...document.querySelectorAll('#log-rows .sku')].map((c) => c.textContent)
-    expect(skus).toEqual(['a', 'b', 'c'])
+    expect(skus).toEqual(['A', 'B', 'C'])
   })
 
   it('hides the empty-state message once an entry exists', () => {
@@ -104,7 +108,8 @@ describe('recording an entry — PRD-001-FR03', () => {
     submit()
     const cell = document.querySelector('#log-rows .sku')
     expect(cell.querySelector('img')).toBeNull()
-    expect(cell.textContent).toBe('<img src=x onerror=1>')
+    // Upper-cased by entry normalisation; the point is that it is text, not markup.
+    expect(cell.textContent).toBe('<IMG SRC=X ONERROR=1>')
   })
 })
 

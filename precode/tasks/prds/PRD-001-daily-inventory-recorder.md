@@ -56,6 +56,22 @@ Two consequences, both recorded in `DECISIONS.md`:
 The PRD remains `approved`. This amendment narrows one requirement rather than
 changing the destination, so re-approval was not sought.
 
+**2026-07-31 — SKU case and whitespace (`FR01`, `FR04`).**
+During `B005` manual verification the builder observed `ac4-100w` and `AC4-100w`
+consolidating as separate items and confirmed they are the same SKU. SKUs are now
+trimmed and upper-cased on entry, before the leading-zero rule. Whitespace was
+decided at the same time: a trailing space is invisible on screen and would silently
+split a SKU.
+
+This resolves the case-sensitivity and whitespace rules that `DATA-MODELS.md` had
+deliberately left undefined for v1. Near-match grouping remains undefined.
+
+Changed: `FR01` wording and its acceptance oracle; the `sku` rule in
+`DATA-MODELS.md`; `normalizeSku()` in `frontend/src/entry.js` and its tests.
+
+The `B005` stop condition for undefined grouping rules fired as designed — the work
+paused and asked rather than inventing a rule.
+
 ## Feature Link
 
 - Feature: `TBD` — no `FEATURES.md` entry exists yet
@@ -194,7 +210,7 @@ Agent-facing translation of the builder-approved product story.
 
 | ID | Requirement | Priority | Notes |
 |---|---|---|---|
-| `PRD-001-FR01` | The user can record an item SKU as free text. Leading zeros are stripped when the SKU is entirely digits | P0 | No catalogue or barcode setup required. `00734` is stored and shown as `734`. Non-numeric SKUs are stored as typed. Amended 2026-07-31 |
+| `PRD-001-FR01` | The user can record an item SKU as free text. It is normalised on entry: trimmed, upper-cased, then leading zeros stripped if entirely digits | P0 | No catalogue or barcode setup required. `  ac4-100w ` is stored and shown as `AC4-100W`; `00734` as `734`. Amended twice on 2026-07-31 |
 | `PRD-001-FR02` | The user can record a quantity for that SKU | P0 | Whole numbers for v1 |
 | `PRD-001-FR03` | The user can see today's inventory log with all entries recorded so far | P0 | Visible confirmation each entry landed |
 | `PRD-001-FR04` | Repeated entries for the same SKU are consolidated into a single total automatically | P0 | Automatic, not a user-triggered step |
@@ -231,7 +247,7 @@ Agent-facing translation of the builder-approved product story.
 
 | Requirement ID | Expected behavior | Evidence lane | Automated check | Manual check | Fixture or data needed | Recorded source | What this does not prove |
 |---|---|---|---|---|---|---|---|
-| `PRD-001-FR01` | WHEN a user types a purely numeric SKU and saves THE SYSTEM SHALL strip its leading zeros and store the result as a string; WHEN the SKU is not entirely digits THE SYSTEM SHALL store it exactly as typed | `unit` | entry-creation tests for `00734`->`734`, `000`->`0`, `00A12` unchanged, and type still string | type `00734`, confirm the log shows `734` | dummy SKU list incl. leading-zero and mixed forms | bead closeout | that two real items never differ only by leading zeros |
+| `PRD-001-FR01` | WHEN a user saves a SKU THE SYSTEM SHALL trim it, upper-case it, then strip leading zeros if the result is entirely digits, and store the result as a string | `unit` | entry-creation tests for `  ac4-100w `->`AC4-100W`, `00734`->`734`, `000`->`0`, inner spaces kept, and type still string | type `ac4-100w` then `AC4-100w`, confirm one consolidated row | dummy SKU list incl. mixed case, padded, and leading-zero forms | bead closeout | that two real items never differ only by case, spacing, or leading zeros |
 | `PRD-001-FR02` | WHEN a quantity is entered THE SYSTEM SHALL store it against that SKU | `unit` | entry-creation test | enter a quantity, confirm it shows | dummy quantities | bead closeout | that entry is fast enough |
 | `PRD-001-FR03` | WHEN an entry is saved THE SYSTEM SHALL show it in today's log | `integration` | log-render test | save an entry, see it listed | 3–5 dummy entries | bead closeout | that the layout is readable at scale |
 | `PRD-001-FR04` | WHEN the same SKU is entered more than once THE SYSTEM SHALL show one consolidated total | `unit` | consolidation test incl. duplicates | enter one SKU three times, confirm one row with summed total | duplicate-SKU fixture | bead closeout | that users trust the merge |

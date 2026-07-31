@@ -1,6 +1,6 @@
 ---
 bead_id: B004
-status: in_progress
+status: done
 execution_mode: builder
 bead_kind: implementation
 primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
@@ -42,7 +42,7 @@ Last updated: 2026-07-31
 ## State
 
 - ID: `B004`
-- Status: `in_progress`
+- Status: `done`
 - Execution mode: `builder`
 
 ## Primary Authority
@@ -150,7 +150,7 @@ confirmed single-device use, so the multi-device branch is closed.
 - Result: latest recorded command status is pass (exit 0)
 - Manual verification: Who checked: Caron Ng (builder) in Chrome, plus Claude (agent) for the automated layer, 2026-07-31. What was checked: recorded entries in the running app at http://localhost:5173, refreshed the page, and confirmed the entries were still present; the active-day and last-saved indicator were visible in the same pass. Environment: Vite dev server on macOS Chrome against real browser `localStorage`, plus 62 Vitest tests under jsdom using an injected in-memory store. Result: pass. This specifically closes the gap that the automated tests exercise an injected fake rather than the browser's real Storage. Remaining uncertainty: carried forward from `B002` and still open — `UX01` has no timed comparison against handwritten lines, and real Tab-key navigation has not been exercised; neither is in this bead's scope.
 - Files changed: 9 changed path(s) at last evidence update
-- Next bead: none named yet
+- Next bead: `tasks/beads/B005-consolidate-duplicate-skus.md`
 - Review decision: accepted by Caron Ng on 2026-07-31. 62 automated tests pass and are recorded; the builder confirmed in Chrome that entries survive a real page refresh, which closes the gap left by testing against an injected store. Both `NFR01` and `UX05` are met. Accepted with two items carried forward and still open, neither in this bead's scope: the `UX01` timing comparison and real Tab-key navigation.
 - Drift observed: none. Changed files were `frontend/src/storage.js` (new), `frontend/src/main.js`, `frontend/index.html`, three files under `frontend/tests/`, this bead file and `tasks/todo.md` — all within the declared `files_in_play`. Checked by hand, since `files-in-play-check.py` is blind in this topology.
 - Lesson to promote: Node 25 ships its own `localStorage` global that shadows jsdom's and lacks the Storage API, so `localStorage.clear` threw under test. Injecting the store into `mount()` and the storage functions fixed it and is better design — but it means the automated suite exercises a fake, and the real browser path can only be proven by a human reloading the page. A passing suite over an injected double is not evidence that the real integration works.
