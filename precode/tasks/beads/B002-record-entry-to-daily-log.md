@@ -1,6 +1,6 @@
 ---
 bead_id: B002
-status: in_progress
+status: done
 execution_mode: builder
 bead_kind: implementation
 primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
@@ -50,7 +50,7 @@ Last updated: 2026-07-30
 ## State
 
 - ID: `B002`
-- Status: `in_progress`
+- Status: `done`
 - Execution mode: `builder`
 
 ## Primary Authority
@@ -168,9 +168,9 @@ it in a fresh context avoids carrying build-time assumptions into acceptance.
 
 - Checks run: `npm test` -> pass (exit 0) at 2026-07-31T18:36:36.692333+00:00; log `logs/check-output/20260731T183635Z-npm-test.log` | `bash scripts/validate-memory.sh` -> pass (exit 0) at 2026-07-31T18:36:44.506739+00:00; log `logs/check-output/20260731T183644Z-bash-scripts-validate-memory.sh.log` | `npm test` -> pass (exit 0) at 2026-07-31T18:56:53.314323+00:00; log `logs/check-output/20260731T185652Z-npm-test.log` | `bash scripts/validate-memory.sh` -> pass (exit 0) at 2026-07-31T18:57:00.856821+00:00; log `logs/check-output/20260731T185700Z-bash-scripts-validate-memory.sh.log`
 - Result: latest recorded command status is pass (exit 0)
-- Manual verification: Who checked: Caron Ng (builder) in the browser, plus Claude (agent) for the automated layer, 2026-07-31. What was checked: entering a SKU and quantity saves the entry and displays it in today's log; refreshing the page loses all records; and after the 2026-07-31 amendment, `00734` and `734` both display as `734`. Environment: Vite dev server at http://localhost:5173 on macOS, plus 41 Vitest tests under jsdom. Result: pass — the builder confirmed the leading-zero behaviour is correct. Remaining uncertainty: real Tab-key navigation (SKU -> quantity -> Save) was not exercised and jsdom cannot test it; the `UX01` timing comparison against ten handwritten lines has not been run, so the adoption bar is unproven; and no one has assessed layout, spacing, or dark mode. Losing records on refresh is expected — persistence is `NFR01`, a later bead.
+- Manual verification: Who checked: Caron Ng (builder) in the browser and Claude (agent) for the automated and visual layers, 2026-07-31. What was checked: entering a SKU and quantity saves and displays the entry; refreshing loses records (expected — persistence is a later bead); after the 2026-07-31 amendment `00734` and `734` both display as `734`; the builder reports the screen works and entry is acceptable in use; agent captured headless-Chrome screenshots in light and dark and confirmed the declared palette renders, the `prefers-color-scheme` query fires, and nothing overlaps or overflows. Environment: Vite dev server at http://localhost:5173 on macOS, Chrome headless for screenshots, plus 41 Vitest tests under jsdom. Result: pass for FR01, FR02, FR03, UX02, SEC02, SEC03 and for visual rendering. Remaining uncertainty: **`UX01` is NOT verified** — no timed comparison against handwritten lines was run and no measurements exist, so the adoption bar is unproven and the builder's 'working fine' is qualitative only; real Tab-key navigation was not exercised and jsdom cannot test it; and the full-cycle time saving cannot be measured until the consolidation and export beads exist.
 - Files changed: 7 changed path(s) at last evidence update
-- Next bead: `tasks/beads/B003-adapt-technical-owner-files.md` is done; the decomposition proposes persistence as the next slice, but no successor bead file exists yet.
+- Next bead: `tasks/beads/B004-persist-daily-log.md`
 - Review decision: accepted by Caron Ng on 2026-07-31. 41 automated tests pass and are recorded; the builder confirmed save, display, and the corrected leading-zero behaviour in the browser. Accepted with three items explicitly unverified and carried as remaining uncertainty: real Tab-key navigation, the `UX01` timing comparison against handwriting, and visual assessment of layout and dark mode.
 - Drift observed: yes, deliberate and approved. Implementing the 2026-07-31 SKU amendment required editing `DECISIONS.md`, `DATA-MODELS.md`, and `tasks/prds/PRD-001-daily-inventory-recorder.md`, none of which are in this bead's `files_in_play`. `PRD-PROTOCOL.md` prescribes a PRD amendment as the correct response to a mid-implementation requirement change, and the builder directed the change, so it was authorised — but it crossed the declared boundary and is recorded rather than passed over. Checked by hand; `files-in-play-check.py` is blind in this topology.
 - Lesson to promote: a requirement can be wrong in a way no test catches, because the tests encode the requirement. Five tests asserted leading-zero preservation and all passed; only a human looking at two rows in a browser found the error. Manual verification is not a formality on top of green tests.

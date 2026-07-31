@@ -1,16 +1,25 @@
 /**
  * Daily Inventory Recorder — entry screen.
- * Bead: B002. Requirements: FR01, FR02, FR03, UX01, UX02, SEC02, SEC03.
+ * Beads: B002, B004. Requirements: FR01-FR03, UX01, UX02, UX05, NFR01, SEC02, SEC03.
  *
- * In-memory only. Persistence is a separate bead and is deliberately absent here.
+ * Entries persist to browser localStorage so a reload does not lose the day
+ * (NFR01), and the screen shows the active day and when it last saved (UX05).
  * No network calls, no accounts, no personal data.
  */
 
 import { createEntry } from './entry.js'
-import { createLog, addEntry, entriesFor, dateKeyFor } from './dailyLog.js'
+import { addEntry, entriesFor, dateKeyFor } from './dailyLog.js'
+import { loadState, saveState } from './storage.js'
 
-/** Wires the screen to a log. Exported so tests can mount it on a document. */
-export function mount(root) {
+/**
+ * Wires the screen to a log.
+ *
+ * `storage` is injected rather than reached for as a global. Node 25 ships its own
+ * non-functional `localStorage` global that shadows jsdom's under test, and an
+ * injected store is easier to verify besides. In the browser the default is the
+ * real one.
+ */
+export function mount(root, storage = globalThis.localStorage) {
   const form = root.querySelector('#entry-form')
   const skuInput = root.querySelector('#sku')
   const quantityInput = root.querySelector('#quantity')
@@ -18,10 +27,24 @@ export function mount(root) {
   const rowsEl = root.querySelector('#log-rows')
   const emptyEl = root.querySelector('#empty')
   const dayLabel = root.querySelector('#day-label')
+  const lastSavedEl = root.querySelector('#last-saved')
 
-  let log = createLog()
+  const restored = loadState(storage)
+  let log = restored.log
+  let savedAt = restored.savedAt
   const dayKey = dateKeyFor()
   if (dayLabel) dayLabel.textContent = dayKey
+
+  function renderSaved() {
+    if (!lastSavedEl) return
+    if (!savedAt) {
+      lastSavedEl.textContent = 'Not saved yet'
+      delete lastSavedEl.dataset.savedAt
+      return
+    }
+    lastSavedEl.textContent = `Saved ${new Date(savedAt).toLocaleTimeString()}`
+    lastSavedEl.dataset.savedAt = savedAt
+  }
 
   function render() {
     const entries = entriesFor(log, dayKey)
@@ -57,7 +80,9 @@ export function mount(root) {
     try {
       const entry = createEntry(rawSku, quantity)
       log = addEntry(log, entry, dayKey)
+      savedAt = saveState(log, storage) ?? savedAt
       render()
+      renderSaved()
       form.reset()
     } catch (error) {
       errorEl.textContent = error.message
@@ -68,6 +93,7 @@ export function mount(root) {
   })
 
   render()
+  renderSaved()
   return {
     get entries() {
       return entriesFor(log, dayKey)

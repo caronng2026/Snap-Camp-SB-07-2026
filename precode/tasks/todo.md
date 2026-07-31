@@ -1,8 +1,8 @@
 ---
-current_bead: tasks/beads/B002-record-entry-to-daily-log.md
+current_bead: tasks/beads/B004-persist-daily-log.md
 current_state: in_progress
 build_lane: Daily Inventory Recorder
-active_feature_window: First entry slice
+active_feature_window: Persistence slice
 primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
 ---
 # PrecodeOS — Active Work File
@@ -24,29 +24,28 @@ primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
 > Noticed is facts only, never directives or hidden backlog.
 
 Creator: Caron Ng
-Document version: v0.3.0
+Document version: v0.4.0
 Last updated: 2026-07-31
 
 ---
 
 ## Current Bead
 
-- `tasks/beads/B002-record-entry-to-daily-log.md`
+- `tasks/beads/B004-persist-daily-log.md`
 - State: `in_progress`
 - Build lane: `Daily Inventory Recorder`
-- Active feature window: `First entry slice`
+- Active feature window: `Persistence slice`
 
 ## Done When
 
-- `frontend/` exists as a Vite project with Vitest configured, and nothing else.
-- A user can enter a SKU as free text and a whole-number quantity.
-- Saving adds the entry to today's log, visible without a page reload.
-- The entire entry cycle is possible by keyboard alone, with focus returning to the
-  SKU field after each save.
-- No authentication, account, or personal-data field exists.
-- No external network request occurs during use.
+- Entries recorded today are still present after a page reload.
+- Entries are still present after the browser is closed and reopened.
+- The screen shows the active business day and a last-saved time.
+- The last-saved time advances when an entry is recorded.
+- Storage is browser `localStorage` only — no sync, no server, no database.
+- Nothing is written outside the current day's key, and no prior day is modified.
 - All checks below are run and recorded.
-- Consolidation, export, persistence, and rollover are **not** implemented.
+- Consolidation, export, and day rollover are **not** implemented.
 
 ## Primary Authority File
 
@@ -54,33 +53,33 @@ Last updated: 2026-07-31
 
 ## Files In Play
 
-- `frontend/package.json`
-- `frontend/vite.config.js`
-- `frontend/index.html`
 - `frontend/src/`
 - `frontend/tests/`
+- `frontend/index.html`
+- `tasks/beads/B004-persist-daily-log.md`
+- `tasks/todo.md`
 
 ## Checks To Run
 
 - `bash scripts/record-check.sh -- bash scripts/validate-memory.sh`
-- `bash scripts/record-check.sh -- npm --prefix ../frontend test`
+- `bash scripts/record-check.sh --cwd ../frontend -- npm test`
 
 ## Explicit Out-of-Scope
 
-- Creating `frontend/` has not been explicitly approved.
-- Any dependency beyond Vite and Vitest is needed. The `.xlsx` writer belongs to
-  the export bead and is not approved for use here.
-- Scope reaches consolidation, export, persistence, or rollover — each is its own
-  bead.
-- `backend/` would need to be created.
-- A requirement needs real partner data. Use dummy SKUs and quantities only.
-- The keyboard-only bar in `UX01` cannot be met without changing the entry model —
-  that is a PRD amendment, not a workaround.
+- Any sync, account, server, or multi-user work appears.
+- MongoDB or any database is pulled in. The `DECISIONS.md` forward-looking note is
+  context only, not approval.
+- Multi-device support is requested — that reopens `OQ-11` and voids this bead.
+- Storage needs a dependency. `localStorage` needs none.
+- Scope reaches consolidation, export, or day rollover.
+- A stored SKU is read back as a number rather than a string.
+- Deleting or pruning stored data becomes necessary — that is a destructive action
+  requiring explicit approval, and `OQ-6` is retain-indefinitely.
 - Stop condition: pause and ask before crossing any stop condition above.
 
 ## Next Up
 
-- Begin `tasks/beads/B002-record-entry-to-daily-log.md` only within its Done When, Files In Play, and Stop If boundaries.
+- Begin `tasks/beads/B004-persist-daily-log.md` only within its Done When, Files In Play, and Stop If boundaries.
 - If the bead is too broad, split it before implementation.
 
 ## Open Questions
@@ -89,5 +88,5 @@ Last updated: 2026-07-31
 
 ## Noticed
 
-- Promoted from `tasks/beads/B003-adapt-technical-owner-files.md` to `tasks/beads/B002-record-entry-to-daily-log.md` by `python3 scripts/bead-transition.py --approve` at 2026-07-31 18:27 UTC.
+- Promoted from `tasks/beads/B002-record-entry-to-daily-log.md` to `tasks/beads/B004-persist-daily-log.md` by `python3 scripts/bead-transition.py --approve` at 2026-07-31 19:12 UTC.
 
