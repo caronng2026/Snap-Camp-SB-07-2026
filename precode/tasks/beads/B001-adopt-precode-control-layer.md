@@ -1,11 +1,11 @@
 ---
 bead_id: B001
-status: in_progress
+status: done
 execution_mode: builder
 bead_kind: setup
 primary_authority: PROJECT-CONTEXT.md
 depends_on: []
-parent_prd: none
+parent_prd: null
 requirement_ids: []
 files_in_play:
   - tasks/todo.md
@@ -21,10 +21,9 @@ delegation_mode: human_in_loop
 test_strategy: static_only
 review_context: same_session_ok
 complexity: narrow
-required_planning_depth: none
+required_planning_depth: null
 autonomy_level: supervised
 ---
-
 # B001 — Adopt The PrecodeOS Control Layer Under `precode/`
 <!-- ANCHOR: b001-adopt-precode-control-layer -->
 
@@ -39,7 +38,9 @@ Last updated: 2026-07-24
 
 ## State
 
-`in_progress`
+- ID: `B001`
+- Status: `done`
+- Execution mode: `builder`
 
 ## Primary Authority
 
@@ -137,15 +138,13 @@ inventory are the available proof.
   confirmed by the human builder, and `delegation_mode: human_in_loop` requires
   that confirmation before this is treated as durable state.
 - Files changed: 6 changed path(s) at last evidence update
-- Next bead: not evaluated — no next bead proposed or activated. Six candidate beads
-  exist as conversation-only proposals classified `not a bead yet`; none is written
-  to `tasks/beads/`.
-- Review decision: **all Done When items verified complete 2026-07-28.** Awaiting
-  human acceptance. This bead is in an `accepted-hold` situation as described in
-  `tasks/beads/BEAD-SCHEMA.md`: closeout evidence is complete, but the bead is held
-  because next-bead transition inputs are not ready. It stays `in_progress` because
-  `scripts/validate-memory.sh` requires exactly one bead `in_progress`, and moving
-  this one to `review` or `done` with no successor would fail validation.
+- Next bead: `tasks/beads/B002-record-entry-to-daily-log.md` — first implementation
+  slice of `PRD-001`, proposed by the 2026-07-30 decomposition and created as
+  `ready`. It depends on no other bead.
+- Review decision: **accepted** by Caron Ng on 2026-07-30. All Done When items were
+  verified complete on 2026-07-28; both checks are recorded as `pass`; the drift
+  record was corrected rather than left as written. The `accepted-hold` condition
+  that previously held this bead is cleared now that `B002` exists as a successor.
 - Drift observed: **yes — corrected record.** An earlier version of this line said
   "none"; that was wrong. While this bead was active, work touched
   `PRODUCT.md`, `DECISIONS.md`, `tasks/prds/PRD-001-daily-inventory-recorder.md`
@@ -170,7 +169,7 @@ inventory are the available proof.
   Repository Topology and Project Shape still hold inherited PrecodeOS content and
   need adaptation. (b) The `files-in-play-check.py` blindness above needs either a
   documented manual compensating practice or a fix.
-- Blocked escape: not needed while status is `in_progress`
+- Blocked escape: not needed; the bead completed without blockers
 - Reference follow-through: not applicable — no public package or maintainer
   reference surfaces were changed by this bead.
 - Human contributor: Caron Ng
@@ -182,6 +181,8 @@ inventory are the available proof.
 
 ## Handback
 
-Return to the builder with the recorded check results and the proposed
-`PROJECT-CONTEXT.md` topology wording for approval. Do not activate a next bead;
-that requires an explicit approved transition.
+Accepted by the builder on 2026-07-30. The recorded check results and the
+`PROJECT-CONTEXT.md` topology wording were reviewed and approved.
+
+Next bead: `tasks/beads/B002-record-entry-to-daily-log.md`. Activation still
+requires an approved transition through `scripts/bead-transition.py --approve`.

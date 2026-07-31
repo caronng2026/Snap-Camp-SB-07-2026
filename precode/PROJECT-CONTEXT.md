@@ -11,16 +11,6 @@ Adapted from the PrecodeOS `PROJECT-CONTEXT.md` template (Apache-2.0, © 2026 Da
 Document version: v0.3.0
 Last updated: 2026-07-27
 
-## Adaptation Status
-
-Only the Repository Topology and Project Shape sections below have been adapted to
-Snap Camp, under bead `B001`.
-
-Every other section still contains inherited PrecodeOS package content describing
-PrecodeOS itself, not Snap Camp. Treat those sections as **not yet adapted**. They
-will be rewritten once a product definition and stack are approved. Do not rely on
-them as Snap Camp guidance in the meantime.
-
 ## Repository Topology
 
 PrecodeOS is installed in the `precode/` subfolder, not at the repository root.
@@ -45,7 +35,7 @@ This is a deliberate project-specific topology, not a PrecodeOS default. See
 
 `PROJECT-CONTEXT.md` is the technical project constitution for Snap Camp.
 
-It gives agents and builders a stable place to look for how this repository builds and verifies the OS without adding another active-memory file.
+It gives agents and builders a stable place to look for how this repository builds and verifies the product without adding another active-memory file.
 
 Active memory remains:
 
@@ -59,13 +49,11 @@ Use `PRODUCT.md` for builder-facing product direction: product promise, users an
 
 ## Project Shape
 
-- Product summary: PrecodeOS is a repo-native control layer for AI coding agents: markdown-canonical, script-enforced, and built to prevent quiet drift. For builders, it functions as a small operating system for AI coding work by showing what matters, what is active, what is proven, and when to stop.
-- Stack: Markdown authority/reference/execution documents; Python 3 compiler, validation, audit, and report scripts; Bash session/check/evidence wrappers; GitHub Actions for repository validation; JSON/JSONL generated evidence in `logs/`.
-- Primary users or roles: Dan Sears / Recode as maintainer and builder; solo non-technical or technical builders adopting PrecodeOS; AI coding agents operating as navigator, explorer, builder, and review roles; reviewers who inspect bead closeout and transition safety.
-- App directory: none yet. Application code will live in sibling folders of
-  `precode/` at the repository root, once an approved PRD shard defines the first
-  slice. The installed Precode root is `precode/`.
-- Deployment target: GitHub repository distribution and local filesystem use. GitHub Actions runs validation on pull requests and pushes.
+- Product summary: Snap Camp builds the **Daily Inventory Recorder** — a fast daily log for small specialty businesses that records item SKUs and quantities during the working day, consolidates repeated SKUs automatically, and produces an Excel-ready daily summary in one action, replacing manual end-of-day spreadsheet consolidation. See `PRODUCT.md`.
+- Stack: browser-based, mobile-responsive web app in `frontend/` — Vite build tooling, vanilla JavaScript modules, Vitest for tests, browser `localStorage` for persistence, one spreadsheet-writing dependency for the `.xlsx` export. No UI framework, no server, no database. Node and npm are development prerequisites. Recorded as OQ-2, OQ-3, OQ-5, and OQ-10 in `DECISIONS.md`.
+- Primary users or roles: the owner or assistant at the anchor partner (needlepoint retail) recording inventory during the working day; witness A (lock manufacturing) and witness B (coffee-paper logistics) confirming the design generalizes; Caron Ng as builder and approver; AI coding agents operating inside bead boundaries.
+- App directory: `frontend/`, a sibling of `precode/` at the repository root. `backend/` is a directory convention only and stays unbuilt until an approved backend bead (OQ-4). Neither exists yet. The installed Precode root is `precode/`.
+- Deployment target: none configured. v1 is run locally for the "watch them use it" test with the anchor partner. Hosting is not a v1 decision.
 
 ## Operating Principles
 
@@ -98,37 +86,35 @@ Use `PRODUCT.md` for builder-facing product direction: product promise, users an
 
 ## Implementation Conventions
 
-- Follow the existing framework, folder, and naming patterns before introducing a new pattern.
-- Keep public script entrypoints stable when refactoring internals; new helper modules may live under `scripts/` when they preserve current command behavior.
-- Keep `scripts/next-step.py` as the canonical generated router for the next human decision, with `session-start.sh` displaying the same decision rather than inventing a second router.
-- Use context-footprint output as advisory routing evidence: active memory, active bead, primary authority, one next protocol when needed, generated reports touched, and approximate document lines.
-- Do not add a dependency unless the active bead allows it or the user approves it.
-- Keep UI work consistent with the existing design system.
-- Keep server-side validation and authorization close to the route/action boundary.
-- Treat auth, payments, personal data, uploads, destructive actions, external integrations, and production configuration as sensitive surfaces.
+- Follow the existing folder and naming patterns in `frontend/` before introducing a new pattern.
+- Vanilla JavaScript modules only. Do not introduce a UI framework — that reverses OQ-2 and needs a PRD amendment.
+- Keep `consolidate()` a pure function: order-independent, total-preserving, no side effects. It is the one boundary the Architecture Brief fixes.
+- Never treat a SKU as a number. Leading zeros must survive entry, storage, consolidation, and export. See `DATA-MODELS.md`.
+- Do not add a dependency unless the active bead allows it or the builder approves it. v1 permits Vite, Vitest, and one spreadsheet writer.
+- Write tests before implementation where the bead declares `failing_first`.
+- Treat auth, payments, personal data, uploads, destructive actions, external integrations, and production configuration as sensitive surfaces. All are closed in v1; opening one needs a PRD amendment.
 - Use `tasks/reference/VERIFICATION-GUARDRAIL-PROTOCOL.md` before accepting high-risk work or crossing sensitive-surface approval gates.
 
 ## Integration Boundaries
 
-Current project integrations:
+Every integration is deliberately closed in v1. See `SECURITY.md` for the sensitive-surface table and `API.md` for why there is no server boundary.
 
-- Auth: none in-app; local agents use the user's tool/session credentials.
-- Database: none.
+- Auth: none. No accounts, roles, or permissions (`PRD-001-SEC02`).
+- Database: none. Persistence is browser `localStorage` (OQ-5). The MongoDB note in `DECISIONS.md` is forward-looking context only, not a v1 requirement.
 - Payments: none.
 - Email: none.
-- Hosting: GitHub repository hosting for source distribution.
-- Analytics: none configured.
-- External APIs: optional read-only GitHub access through `gh` for audit/import scripts when configured.
-- Repository host: GitHub.
-- CI provider: GitHub Actions via `.github/workflows/precode-validate.yml`.
-- Issue tracker: public GitHub Issues are open for narrow feedback and package-bug intake only. Issues, labels, comments, pull requests, reviews, checks, and project boards are evidence until reviewed and promoted into Precode owner files or maintainer decisions.
-- Deployment provider: none for an app runtime.
-- Monitoring or error tracking: none configured.
-- Safe health URLs for read-only uptime checks:
-  - None configured for PrecodeOS itself.
-- Manual dashboards or setup surfaces: GitHub repository settings, Actions, Issues, Pull Requests, and project boards if enabled by the maintainer.
+- Hosting: none configured for the app. The repository is hosted on GitHub, private.
+- Analytics: none. No telemetry (`PRD-001-SEC03`).
+- External APIs: none. Zero outbound network requests, verified by an integration check.
+- Repository host: GitHub, private.
+- CI provider: none installed. A workflow under `precode/.github/` would not run, because GitHub Actions reads only the repository root.
+- Issue tracker: none configured.
+- Deployment provider: none.
+- Monitoring or error tracking: none.
+- Safe health URLs for read-only uptime checks: none — there is no deployed surface.
+- Manual dashboards or setup surfaces: none.
 
-If an integration boundary changes, record the product or technical decision in `DECISIONS.md` and update the owning reference file.
+If an integration boundary changes, record the product or technical decision in `DECISIONS.md` and update the owning reference file. Reopening auth, network, or database requires a PRD amendment.
 
 ## Project Extensions
 
@@ -138,42 +124,29 @@ Enabled project-specific Precode extensions:
 - Enabled importers: `scripts/import-agent-spend.py` and `scripts/import-github-sources.py`.
 - Enabled audits: `scripts/external-status.py`, `scripts/github-audit.py`, `scripts/scheduled-audit.sh`, `scripts/scheduled-audit.py`, and advisory `scripts/*-check.py` commands.
 - Enabled generated reports: `OS-HEALTH.md`, `PROGRESS.md`, `logs/*.json`, `logs/*.jsonl`, `logs/*.md`, `logs/check-output/*`, and `logs/scheduled-audit-output/*`.
-- Enabled external integrations: Provider-neutral external status evidence through `scripts/external-status.py`, GitHub read-only audit/import when configured, and safe health URL checks only when reviewed URLs are listed in this file; no write integration is required for B000.
+- Enabled external integrations: none. Snap Camp v1 makes no external calls. The vendored GitHub and external-status helpers remain available but are unconfigured and read-only.
 - Extension owner files: `tasks/reference/EXTENSION-PROTOCOL.md`, `tasks/reference/EXTERNAL-STATUS-INTEGRATION-PROTOCOL.md`, `tasks/reference/GITHUB-INTEGRATION-PROTOCOL.md`, `tasks/reference/SCHEDULED-AUDIT-PROTOCOL.md`, `tasks/reference/TOOL-EXECUTION-PROTOCOL.md`, `adapters/ADAPTER-INDEX.md`, and `docs/PRECODE-FILE-INVENTORY.md`.
 
 Use `tasks/reference/EXTENSION-PROTOCOL.md` before adding new adapters, protocols, importers, audits, generated reports, bead templates, or external integrations.
 
 ## Scheduled Audit Configuration
 
-Scheduled audits are opt-in read-only checks. They may report external system status, but they must not mutate GitHub, CI, deployments, issue trackers, monitoring systems, or dashboards.
+No scheduled audits are configured. There is no deployed surface, no CI, no external service, and no issue tracker to audit.
 
-- GitHub audit configured: yes, read-only when `git`/`gh` repository context is available.
-- GitHub repository URL: not fixed in B000; derive from the local Git remote when available.
-- GitHub default branch: not fixed in B000; derive from the repository when available.
-- GitHub pull request branch naming convention: `codex/<short-change-name>` for package-facing or trust-affecting maintainer work.
-- GitHub primary workflow names: `Precode Validate`.
-- GitHub issue tracker mode: feedback and package-bug intake only; do not treat GitHub Issues, labels, comments, pull requests, reviews, checks, or project boards as active task, roadmap, merge, release, or package authority.
-- GitHub linked project board: none required for B000.
-- GitHub safe read-only status checks: repository metadata, open pull requests/issues, and GitHub Actions status through read-only commands.
-- CI audit configured: yes, through GitHub Actions validation and read-only audit scripts.
-- Deployment audit configured: no.
-- Issue tracker audit configured: optional.
-- Dependency/security audit configured: no package dependency audit is configured because B000 has no package manager manifest.
-- Monitoring audit configured: no.
-- Uptime audit configured: no; add only public, non-secret, unauthenticated `GET` health URLs to the reviewed safe health URL list above.
-- Dashboard setup audit configured: no.
+If audits are enabled later, they must remain read-only and must not mutate GitHub, CI, deployments, issue trackers, monitoring systems, or dashboards.
 
 ## Project-Specific Checks
 
-B000 and other OS-kernel documentation changes should use these checks unless the active bead narrows or expands them:
+Control-layer and owner-file beads use:
 
 - `bash scripts/record-check.sh -- bash scripts/validate-memory.sh`
-- `bash scripts/record-check.sh -- python3 scripts/version-check.py`
 - `bash scripts/record-check.sh -- python3 scripts/file-inventory.py --check`
-- `bash scripts/record-check.sh -- python3 scripts/local-hygiene-check.py`
-- `bash scripts/record-check.sh -- python3 scripts/completion-check.py`
 
-For Python script behavior changes, add a targeted command that exercises the changed script and records output. For shell script behavior changes, run the changed script in its intended mode through `record-check.sh`.
+Application beads in `frontend/` add:
+
+- `bash scripts/record-check.sh --cwd ../frontend -- npm test`
+
+Run every check from `precode/`. The `--cwd` flag targets the sibling app directory. An active bead may narrow or expand this list; the bead's own `checks` field wins.
 
 ## Testing And Evidence
 
@@ -187,7 +160,7 @@ For Python script behavior changes, add a targeted command that exercises the ch
 ## Implementation Shape
 
 - Use `tasks/reference/SYSTEM-DESIGN-PATTERN-PROTOCOL.md` before introducing or rejecting a design pattern, external service boundary, state flow, strategy-style rule boundary, audit trail, or auth/access boundary.
-- When `scripts/os_compiler.py` grows a distinct domain, extract that domain into an internal service module while keeping existing command paths and generated JSON shapes stable.
+- When a module in `frontend/src/` grows a second responsibility, split it rather than widening it. The four module boundaries in `ARCHITECTURE.md` are the starting shape, not a ceiling.
 - Keep role contracts compact: Navigator, Explorer, Builder, and Review should say what to load, decide, avoid, and return without becoming new active-memory files or autonomous personas.
 - Defer a broad diagnostic `doctor` command and installable `precode` CLI until router-first behavior and bootstrap/install needs are proven.
 - Treat PRD shards as destination documents and beads as journey units; `tasks/todo.md` remains the active journey pointer.
