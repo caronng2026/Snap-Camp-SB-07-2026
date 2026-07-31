@@ -24,14 +24,27 @@ One record of an item and how many moved. Created when the user saves.
 
 | Field | Type | Meaning | Rules |
 |---|---|---|---|
-| `sku` | string | The user's own code or name for an item | **Free text. Stored exactly as typed.** Never coerced to a number, trimmed of leading zeros, case-folded, or normalized |
+| `sku` | string | The user's own code or name for an item | **Free text, stored as a string — never coerced to a number.** Leading zeros are stripped when the SKU is entirely digits: `00734` is stored as `734`, and `000` as `0`. A SKU that is not entirely digits is stored exactly as typed, so `00A12` stays `00A12`. No case-folding, no trimming of surrounding whitespace. |
 | `quantity` | number | How many moved | Whole numbers in v1. Decimals and negatives are open — see OQ-7 |
 | `timestamp` | ISO 8601 string | When the entry was recorded | Local time; used for ordering within a day |
 
-**The `sku` rule is the most important constraint in the project.** The anchor
-partner's SKUs are numeric with leading zeros (OQ-10) — `00734` must survive entry,
-storage, consolidation, and export as the string `00734`. Any place that treats a
-SKU as a number is a defect, and it is why the export is `.xlsx` rather than `.csv`.
+**The `sku` rule changed on 2026-07-31 and the change is easy to get wrong.**
+Leading zeros are stripped for purely numeric SKUs, because the builder confirmed
+`00734` and `734` are the same item. Normalisation happens **once, on entry**, so
+everything downstream — storage, consolidation, export — sees the already-normalised
+value and needs no further handling.
+
+A SKU is still always a **string**. Stripping zeros is not the same as converting to
+a number, and any place that does `Number(sku)` is a defect.
+
+Two consequences worth knowing:
+
+- This reverses the OQ-10 answer of 2026-07-28. The `.xlsx` export format was chosen
+  purely to preserve leading zeros; that reason is gone, and the format is reopened
+  as OQ-12.
+- **Accepted risk:** two distinct items differing only by leading zeros would now
+  merge silently. No evidence was gathered either way. Worth confirming with the
+  client.
 
 `Entry` rejects an empty `sku` and a non-numeric `quantity`.
 
@@ -53,18 +66,19 @@ There is no stored "consolidated" entity. `consolidate()` is a pure function app
 at read time over one day's entries:
 
 ```text
-[ {sku: "00734", qty: 3}, {sku: "00734", qty: 2}, {sku: "0091", qty: 1} ]
+[ {sku: "734", qty: 3}, {sku: "734", qty: 2}, {sku: "91", qty: 1} ]
         |
    consolidate()
         |
-[ {sku: "00734", qty: 5}, {sku: "0091", qty: 1} ]
+[ {sku: "734", qty: 5}, {sku: "91", qty: 1} ]
 ```
 
 - Order-independent: the same entries in any order produce the same result.
 - Total-preserving: summed quantities equal the sum of the inputs.
-- Grouping is by **exact** `sku` string. Case sensitivity, whitespace handling, and
-  near-match grouping are **not** defined in v1 — a bead needing any of those must
-  stop and ask rather than inventing a rule.
+- Grouping is by **exact** `sku` string, after entry-time normalisation. Because
+  `00734` is already stored as `734`, no zero-handling is needed at grouping time.
+- Case sensitivity, whitespace handling, and near-match grouping remain **undefined**
+  in v1 — a bead needing any of those must stop and ask rather than inventing a rule.
 
 Because consolidation is derived, the original entries always remain inspectable.
 

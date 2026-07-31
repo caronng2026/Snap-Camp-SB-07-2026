@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Daily Inventory Recorder</title>
+    <!-- No external stylesheets, fonts, or scripts. SEC03: zero network requests. -->
+    <style>
+      :root {
+        --ink: #1a1a1a;
+        --muted: #5c5c5c;
+        --line: #d8d8d8;
+        --bg: #fdfdfc;
+        --accent: #1f5f4f;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 1.25rem;
+        background: var(--bg);
+        color: var(--ink);
+        font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      main { max-width: 40rem; margin: 0 auto; }
+      h1 { font-size: 1.25rem; margin: 0 0 0.25rem; }
+      .day { color: var(--muted); font-size: 0.875rem; margin: 0 0 1.25rem; }
+      form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: flex-end;
+        margin-bottom: 0.75rem;
+      }
+      .field { display: flex; flex-direction: column; gap: 0.25rem; }
+      .field label { font-size: 0.8125rem; color: var(--muted); }
+      input {
+        font: inherit;
+        padding: 0.6rem 0.7rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        color: inherit;
+      }
+      #sku { width: 14rem; }
+      #quantity { width: 7rem; }
+      input:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+      button {
+        font: inherit;
+        padding: 0.6rem 1.1rem;
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+      }
+      #error {
+        color: #a3231b;
+        font-size: 0.875rem;
+        min-height: 1.25rem;
+        margin: 0 0 0.75rem;
+      }
+      table { width: 100%; border-collapse: collapse; }
+      caption { text-align: left; font-size: 0.875rem; color: var(--muted); padding-bottom: 0.4rem; }
+      th, td { text-align: left; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--line); }
+      th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+      td.qty, th.qty { text-align: right; font-variant-numeric: tabular-nums; }
+      td.sku { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      #empty { color: var(--muted); font-size: 0.9375rem; }
+      @media (prefers-color-scheme: dark) {
+        :root { --ink: #ececec; --muted: #a0a0a0; --line: #3a3a3a; --bg: #161616; --accent: #4c9c86; }
+        input { background: #202020; }
+        button { color: #08120f; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Daily Inventory Recorder</h1>
+      <p class="day">Today &middot; <span id="day-label"></span></p>
+
+      <form id="entry-form" novalidate>
+        <div class="field">
+          <label for="sku">Item SKU</label>
+          <input id="sku" name="sku" type="text" autocomplete="off" autofocus />
+        </div>
+        <div class="field">
+          <label for="quantity">Quantity</label>
+          <input id="quantity" name="quantity" type="text" inputmode="numeric" autocomplete="off" />
+        </div>
+        <button type="submit">Save</button>
+      </form>
+
+      <p id="error" role="alert"></p>
+
+      <table id="log">
+        <caption>Today's inventory log</caption>
+        <thead>
+          <tr>
+            <th scope="col">SKU</th>
+            <th scope="col" class="qty">Quantity</th>
+            <th scope="col">Recorded</th>
+          </tr>
+        </thead>
+        <tbody id="log-rows"></tbody>
+      </table>
+      <p id="empty">No entries recorded yet today.</p>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

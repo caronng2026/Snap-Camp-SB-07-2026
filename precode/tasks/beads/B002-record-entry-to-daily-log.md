@@ -1,6 +1,6 @@
 ---
 bead_id: B002
-status: ready
+status: in_progress
 execution_mode: builder
 bead_kind: implementation
 primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
@@ -20,9 +20,11 @@ files_in_play:
   - frontend/index.html
   - frontend/src/
   - frontend/tests/
+  - tasks/beads/B002-record-entry-to-daily-log.md
+  - tasks/todo.md
 checks:
   - bash scripts/record-check.sh -- bash scripts/validate-memory.sh
-  - bash scripts/record-check.sh -- npm --prefix ../frontend test
+  - bash scripts/record-check.sh --cwd ../frontend -- npm test
 verification_type:
   - unit
   - integration
@@ -48,7 +50,7 @@ Last updated: 2026-07-30
 ## State
 
 - ID: `B002`
-- Status: `ready`
+- Status: `in_progress`
 - Execution mode: `builder`
 
 ## Primary Authority
@@ -103,6 +105,8 @@ a scaffold-only bead would have no observable outcome.
 - `frontend/index.html`
 - `frontend/src/`
 - `frontend/tests/`
+- `tasks/beads/B002-record-entry-to-daily-log.md`
+- `tasks/todo.md`
 
 File names inside `frontend/src/` and `frontend/tests/` are left to the coding
 agent per the Architecture Brief, provided the change is recorded. Nothing under
@@ -112,7 +116,7 @@ of scope and must not be created.
 ## Checks
 
 - `bash scripts/record-check.sh -- bash scripts/validate-memory.sh`
-- `bash scripts/record-check.sh -- npm --prefix ../frontend test`
+- `bash scripts/record-check.sh --cwd ../frontend -- npm test`
 
 Run from `precode/`. The app-level command is expressed relative to the Precode
 root because the installed Precode root is `precode/` and `frontend/` is its
@@ -150,7 +154,7 @@ it in a fresh context avoids carrying build-time assumptions into acceptance.
 
 ## Stop If
 
-- Creating `frontend/` has not been explicitly approved.
+- Creating `frontend/` was approved by the builder on 2026-07-31. Creating any directory other than `frontend/` is out of scope.
 - Any dependency beyond Vite and Vitest is needed. The `.xlsx` writer belongs to
   the export bead and is not approved for use here.
 - Scope reaches consolidation, export, persistence, or rollover — each is its own
@@ -162,27 +166,23 @@ it in a fresh context avoids carrying build-time assumptions into acceptance.
 
 ## Closeout Evidence
 
-- Checks run: pending
-- Evidence source: pending — recorded check output under `logs/` once checks are run
-- Result: pending
-- Manual verification: pending — must state who checked, what was checked,
-  environment, result, and remaining uncertainty
-- Files changed: pending
-- Next bead: pending — likely `B###-persist-daily-log` or
-  `B###-consolidate-duplicate-skus`; both depend only on this bead
-- Review decision: pending
-- Drift observed: pending. Note that `scripts/files-in-play-check.py` cannot detect
-  drift in this subfolder topology, so files in play must be checked manually
-  against the list above.
-- Lesson to promote: pending
-- Follow-up bead needed: pending
-- Blocked escape: pending
-- Reference follow-through: pending
+- Checks run: `npm test` -> pass (exit 0) at 2026-07-31T18:36:36.692333+00:00; log `logs/check-output/20260731T183635Z-npm-test.log` | `bash scripts/validate-memory.sh` -> pass (exit 0) at 2026-07-31T18:36:44.506739+00:00; log `logs/check-output/20260731T183644Z-bash-scripts-validate-memory.sh.log` | `npm test` -> pass (exit 0) at 2026-07-31T18:56:53.314323+00:00; log `logs/check-output/20260731T185652Z-npm-test.log` | `bash scripts/validate-memory.sh` -> pass (exit 0) at 2026-07-31T18:57:00.856821+00:00; log `logs/check-output/20260731T185700Z-bash-scripts-validate-memory.sh.log`
+- Result: latest recorded command status is pass (exit 0)
+- Manual verification: Who checked: Caron Ng (builder) in the browser, plus Claude (agent) for the automated layer, 2026-07-31. What was checked: entering a SKU and quantity saves the entry and displays it in today's log; refreshing the page loses all records; and after the 2026-07-31 amendment, `00734` and `734` both display as `734`. Environment: Vite dev server at http://localhost:5173 on macOS, plus 41 Vitest tests under jsdom. Result: pass — the builder confirmed the leading-zero behaviour is correct. Remaining uncertainty: real Tab-key navigation (SKU -> quantity -> Save) was not exercised and jsdom cannot test it; the `UX01` timing comparison against ten handwritten lines has not been run, so the adoption bar is unproven; and no one has assessed layout, spacing, or dark mode. Losing records on refresh is expected — persistence is `NFR01`, a later bead.
+- Files changed: 7 changed path(s) at last evidence update
+- Next bead: `tasks/beads/B003-adapt-technical-owner-files.md` is done; the decomposition proposes persistence as the next slice, but no successor bead file exists yet.
+- Review decision: accepted by Caron Ng on 2026-07-31. 41 automated tests pass and are recorded; the builder confirmed save, display, and the corrected leading-zero behaviour in the browser. Accepted with three items explicitly unverified and carried as remaining uncertainty: real Tab-key navigation, the `UX01` timing comparison against handwriting, and visual assessment of layout and dark mode.
+- Drift observed: yes, deliberate and approved. Implementing the 2026-07-31 SKU amendment required editing `DECISIONS.md`, `DATA-MODELS.md`, and `tasks/prds/PRD-001-daily-inventory-recorder.md`, none of which are in this bead's `files_in_play`. `PRD-PROTOCOL.md` prescribes a PRD amendment as the correct response to a mid-implementation requirement change, and the builder directed the change, so it was authorised — but it crossed the declared boundary and is recorded rather than passed over. Checked by hand; `files-in-play-check.py` is blind in this topology.
+- Lesson to promote: a requirement can be wrong in a way no test catches, because the tests encode the requirement. Five tests asserted leading-zero preservation and all passed; only a human looking at two rows in a browser found the error. Manual verification is not a formality on top of green tests.
+- Follow-up bead needed: yes. OQ-12 must be answered before the export bead — `.xlsx` was chosen solely to preserve leading zeros and that reason is gone. Also worth confirming with the client that no two real items differ only by leading zeros.
+- Blocked escape: resolved 2026-07-31. Node and npm were absent, blocking the Vite/Vitest scaffold; builder approved `brew install node`, installed node v25.2.1 and npm 11.6.2. jsdom was additionally approved as a fourth dev dependency for the DOM integration tests.
+- Reference follow-through: not applicable — no public PrecodeOS package surfaces, protocols, or maintainer history were changed.
 - Human contributor: Caron Ng
 - Contributor role: builder and approver
-- Agent/tool surface: pending
-- Attribution reviewed by: pending
-- Attribution uncertainty: pending
+- Agent/tool surface: Claude Code (Opus 5)
+- Attribution reviewed by: not reviewed
+- Attribution uncertainty: none noted
+- Evidence source: `logs/check-results.jsonl`
 
 ## Handback
 

@@ -1,6 +1,6 @@
 ---
 bead_id: B003
-status: in_progress
+status: done
 execution_mode: builder
 bead_kind: setup
 primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
@@ -27,7 +27,6 @@ complexity: narrow
 required_planning_depth: brief
 autonomy_level: supervised
 ---
-
 # B003 — Adapt The Technical Owner Files For Snap Camp
 <!-- ANCHOR: b003-adapt-technical-owner-files -->
 
@@ -42,7 +41,9 @@ Last updated: 2026-07-31
 
 ## State
 
-`in_progress`
+- ID: `B003`
+- Status: `done`
+- Execution mode: `builder`
 
 ## Primary Authority
 

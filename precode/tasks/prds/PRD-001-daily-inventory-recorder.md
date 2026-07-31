@@ -34,6 +34,28 @@ permission and **not** permission to code. Architecture Shaping is still outstan
 and must run before bead derivation. No bead may be activated without an approved
 transition.
 
+## Amendments
+
+**2026-07-31 — SKU leading zeros (`FR01`, `FR04`, `FR05`).**
+During `B002` manual verification the builder observed `00734` and `734` rendering as
+separate items and determined they are the same SKU. Leading zeros are now stripped
+for purely numeric SKUs. This **reverses the OQ-10 answer** of 2026-07-28.
+
+Changed by this amendment: `FR01` wording and its acceptance oracle; the `sku` rule
+in `DATA-MODELS.md`; the entry-time normalisation in `frontend/src/entry.js` and its
+tests.
+
+Two consequences, both recorded in `DECISIONS.md`:
+
+- **`.xlsx` is reopened as OQ-12.** The export format was chosen solely to keep
+  leading zeros intact. That reason no longer applies, and `.csv` would drop a
+  dependency. OQ-12 blocks the export bead.
+- **Accepted risk:** two distinct items differing only by leading zeros would merge
+  silently. No evidence was gathered either way; worth confirming with the client.
+
+The PRD remains `approved`. This amendment narrows one requirement rather than
+changing the destination, so re-approval was not sought.
+
 ## Feature Link
 
 - Feature: `TBD` — no `FEATURES.md` entry exists yet
@@ -172,7 +194,7 @@ Agent-facing translation of the builder-approved product story.
 
 | ID | Requirement | Priority | Notes |
 |---|---|---|---|
-| `PRD-001-FR01` | The user can record an item SKU as free text | P0 | No catalogue or barcode setup required |
+| `PRD-001-FR01` | The user can record an item SKU as free text. Leading zeros are stripped when the SKU is entirely digits | P0 | No catalogue or barcode setup required. `00734` is stored and shown as `734`. Non-numeric SKUs are stored as typed. Amended 2026-07-31 |
 | `PRD-001-FR02` | The user can record a quantity for that SKU | P0 | Whole numbers for v1 |
 | `PRD-001-FR03` | The user can see today's inventory log with all entries recorded so far | P0 | Visible confirmation each entry landed |
 | `PRD-001-FR04` | Repeated entries for the same SKU are consolidated into a single total automatically | P0 | Automatic, not a user-triggered step |
@@ -209,11 +231,11 @@ Agent-facing translation of the builder-approved product story.
 
 | Requirement ID | Expected behavior | Evidence lane | Automated check | Manual check | Fixture or data needed | Recorded source | What this does not prove |
 |---|---|---|---|---|---|---|---|
-| `PRD-001-FR01` | WHEN a user types a SKU and saves THE SYSTEM SHALL store it exactly as typed | `unit` | entry-creation test | type a SKU, confirm it appears unchanged | dummy SKU list | bead closeout | that the SKU scheme suits real inventory |
+| `PRD-001-FR01` | WHEN a user types a purely numeric SKU and saves THE SYSTEM SHALL strip its leading zeros and store the result as a string; WHEN the SKU is not entirely digits THE SYSTEM SHALL store it exactly as typed | `unit` | entry-creation tests for `00734`->`734`, `000`->`0`, `00A12` unchanged, and type still string | type `00734`, confirm the log shows `734` | dummy SKU list incl. leading-zero and mixed forms | bead closeout | that two real items never differ only by leading zeros |
 | `PRD-001-FR02` | WHEN a quantity is entered THE SYSTEM SHALL store it against that SKU | `unit` | entry-creation test | enter a quantity, confirm it shows | dummy quantities | bead closeout | that entry is fast enough |
 | `PRD-001-FR03` | WHEN an entry is saved THE SYSTEM SHALL show it in today's log | `integration` | log-render test | save an entry, see it listed | 3–5 dummy entries | bead closeout | that the layout is readable at scale |
 | `PRD-001-FR04` | WHEN the same SKU is entered more than once THE SYSTEM SHALL show one consolidated total | `unit` | consolidation test incl. duplicates | enter one SKU three times, confirm one row with summed total | duplicate-SKU fixture | bead closeout | that users trust the merge |
-| `PRD-001-FR05` | WHEN the user generates a summary THE SYSTEM SHALL produce an Excel-readable file of the consolidated log | `manual` | export-shape test | open the export in Excel, confirm no repair prompt | one full dummy day | bead closeout | that the format matches the user's own sheet |
+| `PRD-001-FR05` | WHEN the user generates a summary THE SYSTEM SHALL produce an Excel-readable file of the consolidated log | `manual` | export-shape test | open the export in Excel, confirm no repair prompt | one full dummy day | bead closeout | that the format matches the user's own sheet. **File format reopened as OQ-12** — `.xlsx` was chosen only to preserve leading zeros |
 | `PRD-001-FR06` | WHEN a new business day begins THE SYSTEM SHALL present an empty log without destroying the prior day | `integration` | day-rollover test | roll the date, confirm empty log and prior day retrievable | two-day fixture | bead closeout | real multi-day habit |
 | `PRD-001-NFR01` | WHEN the app is reloaded THE SYSTEM SHALL still show today's entries | `integration` | persistence test | reload, confirm entries remain | one dummy day | bead closeout | durability across devices |
 | `PRD-001-SEC01` | Repository and fixtures contain no real partner identities or supplier pricing | `static` | grep for partner names in fixtures | review fixtures before commit | — | bead closeout | that external copies are clean |

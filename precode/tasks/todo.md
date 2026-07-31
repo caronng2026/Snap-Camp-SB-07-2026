@@ -1,8 +1,8 @@
 ---
-current_bead: tasks/beads/B003-adapt-technical-owner-files.md
+current_bead: tasks/beads/B002-record-entry-to-daily-log.md
 current_state: in_progress
 build_lane: Daily Inventory Recorder
-active_feature_window: Control-layer owner-file adaptation
+active_feature_window: First entry slice
 primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
 ---
 # PrecodeOS — Active Work File
@@ -24,27 +24,29 @@ primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
 > Noticed is facts only, never directives or hidden backlog.
 
 Creator: Caron Ng
-Document version: v0.2.0
+Document version: v0.3.0
 Last updated: 2026-07-31
 
 ---
 
 ## Current Bead
 
-- `tasks/beads/B003-adapt-technical-owner-files.md`
+- `tasks/beads/B002-record-entry-to-daily-log.md`
 - State: `in_progress`
 - Build lane: `Daily Inventory Recorder`
-- Active feature window: `Control-layer owner-file adaptation`
+- Active feature window: `First entry slice`
 
 ## Done When
 
-- `ARCHITECTURE.md` records the Vite plus vanilla JS shape, the four modules, and the pure-function consolidation boundary.
-- `API.md` records that there is no server boundary in v1.
-- `DATA-MODELS.md` records `Entry` and `DailyLog`, including free-text SKUs with leading zeros.
-- `SECURITY.md` records no auth, no accounts, no personal data, no network, and the partner-identity redaction rule.
-- `PROJECT-CONTEXT.md` no longer carries an `Adaptation Status` warning.
-- No file states a decision not already recorded in `DECISIONS.md` or the Architecture Brief.
-- Both checks below are run and recorded.
+- `frontend/` exists as a Vite project with Vitest configured, and nothing else.
+- A user can enter a SKU as free text and a whole-number quantity.
+- Saving adds the entry to today's log, visible without a page reload.
+- The entire entry cycle is possible by keyboard alone, with focus returning to the
+  SKU field after each save.
+- No authentication, account, or personal-data field exists.
+- No external network request occurs during use.
+- All checks below are run and recorded.
+- Consolidation, export, persistence, and rollover are **not** implemented.
 
 ## Primary Authority File
 
@@ -52,30 +54,34 @@ Last updated: 2026-07-31
 
 ## Files In Play
 
-- `ARCHITECTURE.md`
-- `API.md`
-- `DATA-MODELS.md`
-- `SECURITY.md`
-- `PROJECT-CONTEXT.md`
-- `tasks/beads/B003-adapt-technical-owner-files.md`
-- `tasks/todo.md`
+- `frontend/package.json`
+- `frontend/vite.config.js`
+- `frontend/index.html`
+- `frontend/src/`
+- `frontend/tests/`
 
 ## Checks To Run
 
 - `bash scripts/record-check.sh -- bash scripts/validate-memory.sh`
-- `bash scripts/record-check.sh -- python3 scripts/file-inventory.py --check`
+- `bash scripts/record-check.sh -- npm --prefix ../frontend test`
 
 ## Explicit Out-of-Scope
 
-- Do not state a decision that is not already recorded. Recording is in scope; deciding is not.
-- Do not write application code, and do not create `frontend/` or `backend/`.
-- Do not rewrite `AGENT.md`, `OPERATING-CONSTRAINTS.md`, or `CANDIDATE-QUEUE.md`.
-- Do not grow active memory beyond `AGENT.md`, `DECISIONS.md`, and `tasks/todo.md`.
-- Stop and ask if a gap needs a product decision.
+- Creating `frontend/` has not been explicitly approved.
+- Any dependency beyond Vite and Vitest is needed. The `.xlsx` writer belongs to
+  the export bead and is not approved for use here.
+- Scope reaches consolidation, export, persistence, or rollover — each is its own
+  bead.
+- `backend/` would need to be created.
+- A requirement needs real partner data. Use dummy SKUs and quantities only.
+- The keyboard-only bar in `UX01` cannot be met without changing the entry model —
+  that is a PRD amendment, not a workaround.
+- Stop condition: pause and ask before crossing any stop condition above.
 
 ## Next Up
 
-- Return to `tasks/beads/B002-record-entry-to-daily-log.md`, held at `ready`, through an approved transition once this bead is accepted.
+- Begin `tasks/beads/B002-record-entry-to-daily-log.md` only within its Done When, Files In Play, and Stop If boundaries.
+- If the bead is too broad, split it before implementation.
 
 ## Open Questions
 
@@ -83,6 +89,5 @@ Last updated: 2026-07-31
 
 ## Noticed
 
-- `B002` was activated on 2026-07-30 and moved back to `ready` on 2026-07-31 before any work was done, so control-layer owner-file adaptation could happen under its own bead rather than as drift under an implementation bead.
-- `ARCHITECTURE.md`, `API.md`, `DATA-MODELS.md`, and `SECURITY.md` still carry inherited PrecodeOS content. `DATA-MODELS.md` matters most: `B002` implements `Entry` and `DailyLog`.
-- `AGENT.md`, `OPERATING-CONSTRAINTS.md`, and `CANDIDATE-QUEUE.md` remain PrecodeOS-authored by decision; they describe the OS contract, not Snap Camp.
+- Promoted from `tasks/beads/B003-adapt-technical-owner-files.md` to `tasks/beads/B002-record-entry-to-daily-log.md` by `python3 scripts/bead-transition.py --approve` at 2026-07-31 18:27 UTC.
+
