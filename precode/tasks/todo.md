@@ -1,8 +1,8 @@
 ---
-current_bead: tasks/beads/B006-generate-xlsx-summary.md
+current_bead: tasks/beads/B008-measure-render-performance.md
 current_state: in_progress
 build_lane: Daily Inventory Recorder
-active_feature_window: Export slice
+active_feature_window: Render measurement
 primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
 ---
 # PrecodeOS — Active Work File
@@ -23,34 +23,25 @@ primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
 > Open Questions only contains blockers that can change execution, not general curiosities.
 > Noticed is facts only, never directives or hidden backlog.
 
-Creator: Caron Ng
-Document version: v0.6.0
-Last updated: 2026-07-31
-
 ---
 
 ## Current Bead
 
-- `tasks/beads/B006-generate-xlsx-summary.md`
+- `tasks/beads/B008-measure-render-performance.md`
 - State: `in_progress`
 - Build lane: `Daily Inventory Recorder`
-- Active feature window: `Export slice`
+- Active feature window: `Render measurement`
 
 ## Done When
 
-- A visible action on the log view produces an `.xlsx` download in one step.
-- The file contains the **consolidated** rows for the active day, matching what the
-  log shows on screen.
-- SKU cells are written as **text**, not numbers, so a SKU like `00A12` is never
-  reinterpreted.
-- The file opens in real Excel with no repair prompt.
-- The export reads from stored entries and changes nothing — recording continues to
-  work unaffected afterwards.
-- No network request occurs during the export.
-- The chosen spreadsheet package, its licence, and its bundle size have been
-  reported to the builder and confirmed **before** implementation code was written.
+- Render time at ~200 entries is measured and the actual figure recorded.
+- Render time at ~1,000 entries is also measured, because the anchor partner has
+  1,000+ SKUs and 200 was always a conservative stand-in.
+- A regression test pins a bar based on the measurement, not on the invented figure.
+- `NFR03` in the PRD and `ACCEPTANCE.md` is updated: either confirmed at 500ms with
+  the measurement behind it, or revised with the reason.
+- The provisional wording is removed once the figure has evidence.
 - All checks below are run and recorded.
-- Day rollover is **not** implemented.
 
 ## Primary Authority File
 
@@ -58,12 +49,8 @@ Last updated: 2026-07-31
 
 ## Files In Play
 
-- `frontend/src/`
 - `frontend/tests/`
-- `frontend/index.html`
-- `frontend/package.json`
-- `frontend/package-lock.json`
-- `tasks/beads/B006-generate-xlsx-summary.md`
+- `tasks/beads/B008-measure-render-performance.md`
 - `tasks/todo.md`
 
 ## Checks To Run
@@ -73,21 +60,16 @@ Last updated: 2026-07-31
 
 ## Explicit Out-of-Scope
 
-- The chosen package fails any of the five criteria, or its licence or maintenance
-  state cannot be verified.
-- Any SKU is written as a numeric cell.
-- The export needs data the daily log does not hold.
-- Scope drifts to formatting, styling, multiple sheets, charts, or any reporting
-  beyond the consolidated day.
-- The export modifies, prunes, or reorders stored entries.
-- Excel reports a repair prompt and the fix is not obvious — raise an unblocker
-  rather than improvising the file format.
-- Day rollover work appears.
+- The measurement is worse than the bar and optimisation starts. Report it instead.
+- A measured figure is treated as a guarantee. It is one machine, under jsdom, on
+  one day — it bounds nothing about a shop tablet.
+- Scope reaches the browser-versus-jsdom difference. jsdom timings are indicative
+  only, and that limit belongs in the record rather than in more work.
 - Stop condition: pause and ask before crossing any stop condition above.
 
 ## Next Up
 
-- Begin `tasks/beads/B006-generate-xlsx-summary.md` only within its Done When, Files In Play, and Stop If boundaries.
+- Begin `tasks/beads/B008-measure-render-performance.md` only within its Done When, Files In Play, and Stop If boundaries.
 - If the bead is too broad, split it before implementation.
 
 ## Open Questions
@@ -96,5 +78,5 @@ Last updated: 2026-07-31
 
 ## Noticed
 
-- Promoted from `tasks/beads/B005-consolidate-duplicate-skus.md` to `tasks/beads/B006-generate-xlsx-summary.md` by `python3 scripts/bead-transition.py --approve` at 2026-07-31 19:49 UTC.
+- Promoted from `tasks/beads/B007-daily-rollover.md` to `tasks/beads/B008-measure-render-performance.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-03 19:12 UTC.
 

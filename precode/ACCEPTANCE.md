@@ -75,13 +75,11 @@ Manual checks must state, per `tasks/reference/VERIFICATION-GUARDRAIL-PROTOCOL.m
 - result: pass, fail, or blocked
 - remaining uncertainty
 
-## Provisional Criteria
-
-Not yet settled. Do not treat as final.
+## Measured Criteria
 
 | Criterion | Status |
 |---|---|
-| `PRD-001-NFR03` — log renders under 500ms at ~200 entries | **Provisional.** Set before a framework was chosen and before render behaviour was measured. Revisit during Architecture Shaping |
+| `PRD-001-NFR03` — log renders under 500ms at ~200 entries | **Confirmed 2026-08-03** under `B008`. Median of seven warm renders: 2.2ms at 200 entries, 11.3ms at 1,000, 3.3ms to add one entry to a 200-entry day. Roughly 227x headroom. Measured under jsdom, which does no layout or paint — the figures bound the application's own work, not what a user feels on shop hardware |
 
 ## Optional EARS-Style Pattern
 

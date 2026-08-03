@@ -242,7 +242,7 @@ Agent-facing translation of the builder-approved product story.
 |---|---|---|---|
 | `PRD-001-NFR01` | Recorded entries survive a page reload or app restart within the same business day | P0 | Losing a day's log would be worse than paper |
 | `PRD-001-NFR02` | The exported summary opens cleanly in Excel without repair prompts | P0 | Export format is an open question |
-| `PRD-001-NFR03` | The log stays usable at roughly 200 entries in one day | P1 | Anchor partner has 1,000+ SKUs |
+| `PRD-001-NFR03` | The log stays usable at roughly 200 entries in one day, rendering within 500ms | P1 | **Measured 2026-08-03**: 2.2ms at 200 entries, 11.3ms at 1,000. Bar confirmed with ~227x headroom |
 
 ## Acceptance Oracle Matrix
 
@@ -264,9 +264,9 @@ Agent-facing translation of the builder-approved product story.
 | `PRD-001-SEC02` | THE SYSTEM SHALL contain no authentication, account, or personal-data collection | `static` | no auth dependency in the manifest; no personal-data fields in the data model | review the data model before closeout | — | bead closeout | that future features will not introduce them |
 | `PRD-001-SEC03` | WHEN completing a full record-to-export cycle THE SYSTEM SHALL make no external network request | `integration` | assert zero outbound requests during the cycle | check the browser network panel end to end | one full dummy day | bead closeout | absence of requests in code paths the test does not exercise |
 | `PRD-001-NFR02` | WHEN the summary is opened in Excel THE SYSTEM SHALL produce no repair prompt, with the SKU column typed as text | `manual` | assert `.xlsx` structural validity and SKU cells typed as text | open in real Excel; confirm `00734` reads as `00734` | leading-zero SKU fixture | bead closeout | behaviour across other Excel versions or LibreOffice |
-| `PRD-001-NFR03` | WHEN today's log holds ~200 entries THE SYSTEM SHALL render the log in under 500ms and keep entry responsive. **Provisional bar — see note below.** | `integration` | render 200 entries and assert the 500ms budget | scroll and add an entry with 200 present | 200 dummy entries | bead closeout | behaviour at the anchor partner's full 1,000+ SKU catalogue |
+| `PRD-001-NFR03` | WHEN today's log holds ~200 entries THE SYSTEM SHALL render the log in under 500ms and keep entry responsive | `integration` | median-of-7 warm render at 200 and 1,000 entries, plus the cost of adding one entry | scroll and add an entry with 200 present | 200 and 1,000 dummy entries | bead closeout, `B008` | real browser behaviour on shop hardware — jsdom does no layout or paint |
 
-**`NFR03` is a provisional bar, not a final requirement.** The 500ms figure was set before any framework was chosen and before real render behaviour was measured. It must be revisited during Architecture Shaping and may be revised up or down against the chosen framework. Do not treat it as a fixed requirement that has been validated; it is a starting number recorded so the requirement is testable rather than vague.
+**`NFR03` was measured on 2026-08-03 under `B008` and the 500ms bar is confirmed.** Median of seven warm renders: **2.2ms at 200 entries / 60 SKUs**, **11.3ms at 1,000 entries / 300 SKUs**, and **3.3ms to add one entry to a 200-entry day**. Cost scales linearly with entry count. Regression bars in the suite are set from the measurement (100ms, 300ms, 50ms), not from the original figure. **What this does not prove:** the timings are from jsdom, which performs no layout, paint, or compositing — they bound the application's own work, not what a user feels on shop hardware. A first run reported 36ms purely from module and JIT warm-up, which is why the recorded figures are warm medians.
 
 **None of the above is proof until run through `bash scripts/record-check.sh -- <command>` and recorded in bead Closeout Evidence.**
 
@@ -385,9 +385,11 @@ Agent-facing translation of the builder-approved product story.
 - Repo facts the coding agent must inspect first: current Node and npm versions; whether the chosen `.xlsx` package is present, licensed permissively, and maintained at the time of use.
 - Implementation choices intentionally left to the agent: file and module names inside `frontend/src/`, CSS approach, test file layout, and the internal shape of the `localStorage` serialization — provided the `DailyLog` date-key model and the pure-function consolidation boundary hold.
 
-### Provisional Items Carried Forward
+### Measured Items
 
-- `NFR03` (200 entries under 500ms) remains **provisional and unmeasured**. Vanilla JS rendering roughly 200 rows would normally sit far inside that budget, but no measurement exists yet. Confirm against the built app during the first rendering bead and revise the number if reality disagrees.
+- `NFR03` (200 entries under 500ms) was **measured and confirmed on 2026-08-03**
+  under `B008`. See the note under the Acceptance Oracle Matrix. jsdom timings are
+  indicative of the application's own cost, not of real browser paint.
 
 ## Module / Interface Candidates
 
@@ -554,7 +556,6 @@ and transition `B001`, which holds the single active slot. Only one bead may be
     cannot be bounded for any bead until a framework is chosen.
   - Re-run decomposition against the chosen framework.
   - Approve the `.xlsx` spreadsheet-writing dependency before the export bead.
-  - Revisit the provisional 500ms `NFR03` bar against real render behaviour.
   - Transition `B001`, which is `in_progress` with complete closeout evidence.
     Only one bead may be `in_progress`, so the successor must be activated in the
     same transition.

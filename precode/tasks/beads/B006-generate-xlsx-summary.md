@@ -1,6 +1,6 @@
 ---
 bead_id: B006
-status: in_progress
+status: done
 execution_mode: builder
 bead_kind: implementation
 primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
@@ -46,7 +46,7 @@ Last updated: 2026-07-31
 ## State
 
 - ID: `B006`
-- Status: `in_progress`
+- Status: `done`
 - Execution mode: `builder`
 
 ## Primary Authority
@@ -185,7 +185,7 @@ the observable shape of the output rather than driving the design.
 - Result: latest recorded command status is pass (exit 0)
 - Manual verification: Who checked: Caron Ng (builder) in Chrome, plus Claude (agent) for the automated and library-level layers, 2026-08-03. What was checked: builder clicked Generate Excel summary after the fix and confirmed it works, following instructions to open the file in Excel and check for a repair prompt, the 734 total of 5 across 2 entries, and that 00A12 reads as 00A12; agent ran 108 Vitest tests and probed the real library end to end, capturing a 2798-byte blob with MIME type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet and a PK zip header. Environment: Vite dev server on macOS Chrome, plus Vitest under jsdom. Result: pass. Remaining uncertainty: the agent did not itself open the file in Excel and relies on the builder's confirmation; behaviour on other Excel versions or LibreOffice is unknown; carried forward from earlier beads, `UX01` still has no timed comparison and real Tab-key navigation has not been exercised.
 - Files changed: 12 changed path(s) at last evidence update
-- Next bead: none named yet
+- Next bead: `tasks/beads/B007-daily-rollover.md`
 - Review decision: accepted by Caron Ng on 2026-08-03. 108 automated tests pass and are recorded; the dependency gate was satisfied before implementation with `write-excel-file` 4.1.1 (MIT) reported and approved, and the real bundle cost measured at 75 kB / 21.4 kB gzipped; the builder confirmed the export works in the browser after the `toFile()` fix. `FR05`, `UX04`, and `NFR02` are met. Accepted with the agent not having opened the file in Excel itself — `NFR02` rests on the builder's confirmation — and with four items carried forward, none in this bead's scope: the `UX01` timing comparison, real Tab-key navigation, browser re-check of consolidation since the case amendment, and the provisional `NFR03` render bar.
 - Drift observed: none. Changed files were `frontend/src/exportSummary.js` (new), `frontend/src/main.js`, `frontend/index.html`, `frontend/package.json`, `frontend/package-lock.json`, two files under `frontend/tests/`, this bead file and `tasks/todo.md` — all within the declared `files_in_play`. Checked by hand; `files-in-play-check.py` is blind in this topology.
 - Lesson to promote: a stub agrees with whatever you tell it. The export shipped broken because `downloadSummary` was tested against an injected stub that asserted the agent's call shape rather than the library's real contract — the browser build returns `{toBlob, toFile}` and only `toFile()` downloads, so awaiting the writer produced no file and no error. The agent then ran a probe that 'completed without throwing' and reported it as evidence; that was vacuous for the same reason. Two rules follow: when integrating a third party, assert against its real contract at least once, and a probe that cannot fail is not evidence.

@@ -1,6 +1,6 @@
 /**
  * Daily Inventory Recorder — entry screen.
- * Beads: B002, B004, B005, B006. Requirements: FR01-FR05, UX01-UX05, NFR01-NFR02, SEC02, SEC03.
+ * Beads: B002, B004, B005, B006, B007. Requirements: FR01-FR06, UX01-UX05, NFR01-NFR02, SEC02, SEC03.
  *
  * Entries persist to browser localStorage so a reload does not lose the day
  * (NFR01), and the screen shows the active day and when it last saved (UX05).
@@ -11,6 +11,10 @@ import { createEntry } from './entry.js'
 import { addEntry, entriesFor, dateKeyFor } from './dailyLog.js'
 import { loadState, saveState } from './storage.js'
 import { consolidate } from './consolidate.js'
+
+/** How often to notice that the calendar day has changed while the app sits open. */
+const DAY_WATCH_MS = 30_000
+let dayWatch = null
 import { downloadSummary } from './exportSummary.js'
 
 /**
@@ -36,8 +40,12 @@ export function mount(root, storage = globalThis.localStorage) {
   const restored = loadState(storage)
   let log = restored.log
   let savedAt = restored.savedAt
-  const dayKey = dateKeyFor()
-  if (dayLabel) dayLabel.textContent = dayKey
+
+  // The active day is derived from the clock, never cached. A shop may leave the
+  // tab open overnight, so a fixed value taken at mount would strand them on
+  // yesterday's log (FR06).
+  const dayKey = () => dateKeyFor()
+  let renderedDay = dayKey()
 
   function renderSaved() {
     if (!lastSavedEl) return
@@ -52,7 +60,9 @@ export function mount(root, storage = globalThis.localStorage) {
 
   function render() {
     // Consolidated at read time — the stored entries are never rewritten (FR04).
-    const rows = consolidate(entriesFor(log, dayKey))
+    renderedDay = dayKey()
+    if (dayLabel) dayLabel.textContent = renderedDay
+    const rows = consolidate(entriesFor(log, renderedDay))
     rowsEl.textContent = ''
     // Built with textContent, never innerHTML — a SKU is user input.
     for (const row of rows) {
@@ -90,7 +100,7 @@ export function mount(root, storage = globalThis.localStorage) {
 
     try {
       const entry = createEntry(rawSku, quantity)
-      log = addEntry(log, entry, dayKey)
+      log = addEntry(log, entry, dayKey())
       savedAt = saveState(log, storage) ?? savedAt
       render()
       renderSaved()
@@ -108,18 +118,26 @@ export function mount(root, storage = globalThis.localStorage) {
     exportBtn.addEventListener('click', async () => {
       if (exportStatus) exportStatus.textContent = ''
       try {
-        await downloadSummary(entriesFor(log, dayKey), dayKey)
+        await downloadSummary(entriesFor(log, dayKey()), dayKey())
       } catch (error) {
         if (exportStatus) exportStatus.textContent = `Export failed: ${error.message}`
       }
     })
   }
 
+  // Cheap watcher: re-render when the calendar day changes underneath us. The day
+  // itself is still derived at render time, so a missed or late tick shows a stale
+  // label at worst — it can never write to the wrong day.
+  if (dayWatch) clearInterval(dayWatch)
+  dayWatch = setInterval(() => {
+    if (dayKey() !== renderedDay) render()
+  }, DAY_WATCH_MS)
+
   render()
   renderSaved()
   return {
     get entries() {
-      return entriesFor(log, dayKey)
+      return entriesFor(log, dayKey())
     },
   }
 }
