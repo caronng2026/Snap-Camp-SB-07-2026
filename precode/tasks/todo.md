@@ -1,9 +1,9 @@
 ---
-current_bead: tasks/beads/B008-measure-render-performance.md
+current_bead: tasks/beads/B009-shape-backend-prd.md
 current_state: in_progress
-build_lane: Daily Inventory Recorder
-active_feature_window: Render measurement
-primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
+build_lane: Backend product definition
+active_feature_window: Backend PRD shaping
+primary_authority: tasks/reference/PRD-PROTOCOL.md
 ---
 # PrecodeOS — Active Work File
 <!-- ANCHOR: active-work -->
@@ -23,53 +23,62 @@ primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
 > Open Questions only contains blockers that can change execution, not general curiosities.
 > Noticed is facts only, never directives or hidden backlog.
 
+Creator: Caron Ng
+Document version: v0.9.0
+Last updated: 2026-08-03
+
 ---
 
 ## Current Bead
 
-- `tasks/beads/B008-measure-render-performance.md`
+- `tasks/beads/B009-shape-backend-prd.md`
 - State: `in_progress`
-- Build lane: `Daily Inventory Recorder`
-- Active feature window: `Render measurement`
+- Build lane: `Backend product definition`
+- Active feature window: `Backend PRD shaping`
 
 ## Done When
 
-- Render time at ~200 entries is measured and the actual figure recorded.
-- Render time at ~1,000 entries is also measured, because the anchor partner has
-  1,000+ SKUs and 200 was always a conservative stand-in.
-- A regression test pins a bar based on the measurement, not on the invented figure.
-- `NFR03` in the PRD and `ACCEPTANCE.md` is updated: either confirmed at 500ms with
-  the measurement behind it, or revised with the reason.
-- The provisional wording is removed once the figure has evidence.
-- All checks below are run and recorded.
+- The backend problem is stated in plain language, or its absence is recorded.
+- The user and the painful moment are named, with whatever evidence exists.
+- It is established whether the problem is real now or anticipated later.
+- Non-goals are explicit, including which `PRD-001` decisions would be reopened.
+- Open questions are listed with what each one blocks.
+- A `PRD-002` draft exists at `status: draft` following `PRD-SHARD-SCHEMA.md`.
+- The draft is **not** approved. Approval is a separate human gate.
+- No architecture is chosen. Architecture Shaping runs only after PRD approval.
+- Both checks below are run and recorded.
 
 ## Primary Authority File
 
-- `tasks/prds/PRD-001-daily-inventory-recorder.md`
+- `tasks/reference/PRD-PROTOCOL.md`
 
 ## Files In Play
 
-- `frontend/tests/`
-- `tasks/beads/B008-measure-render-performance.md`
+- `tasks/prds/PRD-002-backend.md`
+- `CANDIDATE-QUEUE.md`
+- `tasks/beads/B009-shape-backend-prd.md`
 - `tasks/todo.md`
 
 ## Checks To Run
 
 - `bash scripts/record-check.sh -- bash scripts/validate-memory.sh`
-- `bash scripts/record-check.sh --cwd ../frontend -- npm test`
+- `bash scripts/record-check.sh -- python3 scripts/file-inventory.py --check`
 
 ## Explicit Out-of-Scope
 
-- The measurement is worse than the bar and optimisation starts. Report it instead.
-- A measured figure is treated as a guarantee. It is one machine, under jsdom, on
-  one day — it bounds nothing about a shop tablet.
-- Scope reaches the browser-versus-jsdom difference. jsdom timings are indicative
-  only, and that limit belongs in the record rather than in more work.
+- A problem statement would have to be invented to justify the backend. Say so and
+  park it instead.
+- A technology choice starts driving the requirements rather than the reverse.
+- Any `PRD-001` decision is reopened without recording what changed and why —
+  particularly `OQ-11` (single-device), `SEC02` (no accounts), and `SEC03` (no
+  external services).
+- Scope reaches architecture, hosting, schema design, or bead proposals.
+- The draft starts being treated as approved.
 - Stop condition: pause and ask before crossing any stop condition above.
 
 ## Next Up
 
-- Begin `tasks/beads/B008-measure-render-performance.md` only within its Done When, Files In Play, and Stop If boundaries.
+- Begin `tasks/beads/B009-shape-backend-prd.md` only within its Done When, Files In Play, and Stop If boundaries.
 - If the bead is too broad, split it before implementation.
 
 ## Open Questions
@@ -78,5 +87,5 @@ primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
 
 ## Noticed
 
-- Promoted from `tasks/beads/B007-daily-rollover.md` to `tasks/beads/B008-measure-render-performance.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-03 19:12 UTC.
+- Promoted from `tasks/beads/B008-measure-render-performance.md` to `tasks/beads/B009-shape-backend-prd.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-03 19:21 UTC.
 

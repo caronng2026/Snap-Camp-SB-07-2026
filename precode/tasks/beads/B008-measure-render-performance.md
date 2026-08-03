@@ -1,6 +1,6 @@
 ---
 bead_id: B008
-status: in_progress
+status: done
 execution_mode: builder
 bead_kind: review
 primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
@@ -39,7 +39,7 @@ Last updated: 2026-08-03
 ## State
 
 - ID: `B008`
-- Status: `in_progress`
+- Status: `done`
 - Execution mode: `builder`
 
 ## Primary Authority
@@ -142,7 +142,7 @@ design.
 - Result: latest recorded command status is pass (exit 0)
 - Manual verification: Who checked: Claude (agent), 2026-08-03. What was checked: warm render cost at 200 entries / 60 SKUs, at 1,000 entries / 300 SKUs, and the cost of adding one entry to a 200-entry day, each as a median of seven passes; then `NFR03` wording updated in the PRD and `ACCEPTANCE.md` and the provisional marking removed. Environment: Vitest under jsdom on macOS, node v25.2.1. Result: pass — 2.2ms, 11.3ms and 3.3ms respectively; the 500ms bar holds with roughly 227x headroom and cost scales linearly with entry count. Remaining uncertainty: jsdom performs no layout, paint or compositing, so these figures bound the application's own work and say nothing definite about a shop tablet; no measurement has been taken in a real browser or on target hardware; a first run reported 36ms of module and JIT warm-up as if it were render cost, so all recorded figures are warm medians.
 - Files changed: 9 changed path(s) at last evidence update
-- Next bead: none named yet
+- Next bead: `tasks/beads/B009-shape-backend-prd.md`
 - Review decision: accepted by Caron Ng on 2026-08-03. 119 automated tests pass and are recorded. `NFR03` is measured, the 500ms bar is confirmed with roughly 227x headroom, regression bars are set from the measurement rather than the invented figure, and the provisional marking has been removed from both the PRD and `ACCEPTANCE.md`. Accepted with the jsdom limitation stated in the record: no measurement exists from a real browser or from target hardware.
 - Drift observed: yes, anticipated and declared. Updating `NFR03` required editing `tasks/prds/PRD-001-daily-inventory-recorder.md` and `ACCEPTANCE.md`, which are outside this bead's `files_in_play`. The bead's Files In Play section named this in advance as a PRD amendment, so it was declared before it happened rather than discovered afterwards. All other changed files were in scope. Checked by hand.
 - Lesson to promote: an unmeasured number in a requirement is a liability, and measuring it badly is worse. The first run reported 1,000 entries rendering faster than 200 — impossible for linear work, and a clear signal the figure was module and JIT warm-up rather than render cost. A measurement that does not scale sensibly with its input is measuring something else. Warm up, take a median, and check the shape of the result before writing a number into an authority file.
