@@ -16,5 +16,8 @@
     "vite": "^8.2.0",
     "vitest": "^4.1.10"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "write-excel-file": "^4.1.1"
+  }
 }

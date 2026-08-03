@@ -1,6 +1,6 @@
 ---
 bead_id: B005
-status: in_progress
+status: done
 execution_mode: builder
 bead_kind: implementation
 primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
@@ -43,7 +43,7 @@ Last updated: 2026-07-31
 ## State
 
 - ID: `B005`
-- Status: `in_progress`
+- Status: `done`
 - Execution mode: `builder`
 
 ## Primary Authority
@@ -156,7 +156,7 @@ Brief. The rendering change is small and bounded.
 - Result: latest recorded command status is pass (exit 0)
 - Manual verification: Who checked: Caron Ng (builder) found the case defect in the running app and approved the upper-case and trim decision on 2026-07-31; Claude (agent) covered the automated and visual layers. What was checked: builder entered `ac4-100w` and `AC4-100w` at http://localhost:5173 and observed them consolidating as separate rows, which is what triggered the amendment; agent ran 88 Vitest tests and captured a headless-Chrome screenshot confirming the consolidated table header renders as SKU / Total / Entries / Last recorded. Environment: Vite dev server on macOS Chrome, plus Vitest under jsdom with an injected in-memory store. Result: pass on the automated layer and on the defect that prompted the change. Remaining uncertainty: the builder has **not** confirmed re-testing consolidation in the browser after the case and whitespace amendment, so the post-fix behaviour is proven only by tests; `UX01` still has no timed comparison against handwriting; real Tab-key navigation has still not been exercised.
 - Files changed: 15 changed path(s) at last evidence update
-- Next bead: none named yet
+- Next bead: `tasks/beads/B006-generate-xlsx-summary.md`
 - Review decision: accepted by Caron Ng on 2026-07-31. 88 automated tests pass and are recorded; `consolidate()` is a pure read-time transform with order-independence, total preservation, and non-mutation each pinned by a test, and the original entries are proven to survive unchanged in storage. Accepted **without** a post-amendment browser re-check: the builder chose to accept on the automated evidence. Three items remain open and carried forward, none in this bead's scope: browser re-verification of consolidation after the case and whitespace amendment, the `UX01` timing comparison, and real Tab-key navigation.
 - Drift observed: yes, deliberate and approved. The case and whitespace amendment required editing `DECISIONS.md`, `DATA-MODELS.md`, and `tasks/prds/PRD-001-daily-inventory-recorder.md`, none of which are in this bead's `files_in_play`. `PRD-PROTOCOL.md` prescribes a PRD amendment for a mid-implementation requirement change and the builder directed it, so it was authorised, but it crossed the declared boundary. All other changed files were within scope. Checked by hand; `files-in-play-check.py` is blind in this topology.
 - Lesson to promote: the stop condition worked. `DATA-MODELS.md` deliberately left case, whitespace, and near-match grouping undefined, and B005 required the work to stop and ask rather than invent a rule — which is exactly what happened when `ac4-100w` and `AC4-100w` split. Leaving a rule explicitly undefined, rather than silently defaulting, is what turned a would-be silent defect into a decision.

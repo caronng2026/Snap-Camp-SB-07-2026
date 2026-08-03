@@ -1,8 +1,8 @@
 ---
-current_bead: tasks/beads/B005-consolidate-duplicate-skus.md
+current_bead: tasks/beads/B006-generate-xlsx-summary.md
 current_state: in_progress
 build_lane: Daily Inventory Recorder
-active_feature_window: Consolidation slice
+active_feature_window: Export slice
 primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
 ---
 # PrecodeOS — Active Work File
@@ -24,30 +24,33 @@ primary_authority: tasks/prds/PRD-001-daily-inventory-recorder.md
 > Noticed is facts only, never directives or hidden backlog.
 
 Creator: Caron Ng
-Document version: v0.5.0
+Document version: v0.6.0
 Last updated: 2026-07-31
 
 ---
 
 ## Current Bead
 
-- `tasks/beads/B005-consolidate-duplicate-skus.md`
+- `tasks/beads/B006-generate-xlsx-summary.md`
 - State: `in_progress`
 - Build lane: `Daily Inventory Recorder`
-- Active feature window: `Consolidation slice`
+- Active feature window: `Export slice`
 
 ## Done When
 
-- `consolidate()` exists as a pure function over one day's entries.
-- Entering the same SKU three times shows one row with the summed quantity.
-- The consolidated total is visible in the log, not only in an export.
-- Consolidation is derived at read time. Original entries remain stored unchanged
-  and inspectable.
-- Different SKUs remain separate rows.
-- The result is order-independent and total-preserving.
-- Consolidation survives a reload, because it is derived from stored entries.
+- A visible action on the log view produces an `.xlsx` download in one step.
+- The file contains the **consolidated** rows for the active day, matching what the
+  log shows on screen.
+- SKU cells are written as **text**, not numbers, so a SKU like `00A12` is never
+  reinterpreted.
+- The file opens in real Excel with no repair prompt.
+- The export reads from stored entries and changes nothing — recording continues to
+  work unaffected afterwards.
+- No network request occurs during the export.
+- The chosen spreadsheet package, its licence, and its bundle size have been
+  reported to the builder and confirmed **before** implementation code was written.
 - All checks below are run and recorded.
-- Export and day rollover are **not** implemented.
+- Day rollover is **not** implemented.
 
 ## Primary Authority File
 
@@ -58,7 +61,9 @@ Last updated: 2026-07-31
 - `frontend/src/`
 - `frontend/tests/`
 - `frontend/index.html`
-- `tasks/beads/B005-consolidate-duplicate-skus.md`
+- `frontend/package.json`
+- `frontend/package-lock.json`
+- `tasks/beads/B006-generate-xlsx-summary.md`
 - `tasks/todo.md`
 
 ## Checks To Run
@@ -68,21 +73,21 @@ Last updated: 2026-07-31
 
 ## Explicit Out-of-Scope
 
-- Consolidation needs a rule not defined in `DATA-MODELS.md`. Case sensitivity,
-  whitespace handling, and near-match grouping are explicitly **undefined** in v1 —
-  stop and ask rather than inventing a rule.
-- Scope drifts toward telling near-identical items apart. That belongs to the
-  **superseded** Flexible Inventory Tracker scope and is not this product.
-- Consolidation is stored rather than derived. The Architecture Brief fixes it as a
-  read-time transform, and storing it would make the original entries unrecoverable.
-- Any entry is modified or removed to achieve a total.
-- Scope reaches export or day rollover.
-- A SKU is compared as a number rather than a string.
+- The chosen package fails any of the five criteria, or its licence or maintenance
+  state cannot be verified.
+- Any SKU is written as a numeric cell.
+- The export needs data the daily log does not hold.
+- Scope drifts to formatting, styling, multiple sheets, charts, or any reporting
+  beyond the consolidated day.
+- The export modifies, prunes, or reorders stored entries.
+- Excel reports a repair prompt and the fix is not obvious — raise an unblocker
+  rather than improvising the file format.
+- Day rollover work appears.
 - Stop condition: pause and ask before crossing any stop condition above.
 
 ## Next Up
 
-- Begin `tasks/beads/B005-consolidate-duplicate-skus.md` only within its Done When, Files In Play, and Stop If boundaries.
+- Begin `tasks/beads/B006-generate-xlsx-summary.md` only within its Done When, Files In Play, and Stop If boundaries.
 - If the bead is too broad, split it before implementation.
 
 ## Open Questions
@@ -91,5 +96,5 @@ Last updated: 2026-07-31
 
 ## Noticed
 
-- Promoted from `tasks/beads/B004-persist-daily-log.md` to `tasks/beads/B005-consolidate-duplicate-skus.md` by `python3 scripts/bead-transition.py --approve` at 2026-07-31 19:33 UTC.
+- Promoted from `tasks/beads/B005-consolidate-duplicate-skus.md` to `tasks/beads/B006-generate-xlsx-summary.md` by `python3 scripts/bead-transition.py --approve` at 2026-07-31 19:49 UTC.
 

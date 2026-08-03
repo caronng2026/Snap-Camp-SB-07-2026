@@ -1,6 +1,6 @@
 /**
  * Daily Inventory Recorder — entry screen.
- * Beads: B002, B004, B005. Requirements: FR01-FR04, UX01-UX03, UX05, NFR01, SEC02, SEC03.
+ * Beads: B002, B004, B005, B006. Requirements: FR01-FR05, UX01-UX05, NFR01-NFR02, SEC02, SEC03.
  *
  * Entries persist to browser localStorage so a reload does not lose the day
  * (NFR01), and the screen shows the active day and when it last saved (UX05).
@@ -11,6 +11,7 @@ import { createEntry } from './entry.js'
 import { addEntry, entriesFor, dateKeyFor } from './dailyLog.js'
 import { loadState, saveState } from './storage.js'
 import { consolidate } from './consolidate.js'
+import { downloadSummary } from './exportSummary.js'
 
 /**
  * Wires the screen to a log.
@@ -29,6 +30,8 @@ export function mount(root, storage = globalThis.localStorage) {
   const emptyEl = root.querySelector('#empty')
   const dayLabel = root.querySelector('#day-label')
   const lastSavedEl = root.querySelector('#last-saved')
+  const exportBtn = root.querySelector('#export')
+  const exportStatus = root.querySelector('#export-status')
 
   const restored = loadState(storage)
   let log = restored.log
@@ -70,6 +73,8 @@ export function mount(root, storage = globalThis.localStorage) {
       rowsEl.append(tr)
     }
     emptyEl.hidden = rows.length > 0
+    // Nothing to export from an empty day (UX04).
+    if (exportBtn) exportBtn.disabled = rows.length === 0
   }
 
   form.addEventListener('submit', (event) => {
@@ -97,6 +102,18 @@ export function mount(root, storage = globalThis.localStorage) {
       skuInput.focus()
     }
   })
+
+  // UX04: one step from the log to a file.
+  if (exportBtn) {
+    exportBtn.addEventListener('click', async () => {
+      if (exportStatus) exportStatus.textContent = ''
+      try {
+        await downloadSummary(entriesFor(log, dayKey), dayKey)
+      } catch (error) {
+        if (exportStatus) exportStatus.textContent = `Export failed: ${error.message}`
+      }
+    })
+  }
 
   render()
   renderSaved()

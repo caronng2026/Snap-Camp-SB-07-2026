@@ -70,6 +70,9 @@
       td.count { color: var(--muted); }
       td.sku { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
       #empty { color: var(--muted); font-size: 0.9375rem; }
+      .actions { display: flex; align-items: center; gap: 0.6rem; margin: 0 0 1.1rem; }
+      #export:disabled { opacity: 0.5; cursor: default; }
+      #export-status { font-size: 0.875rem; color: var(--muted); }
       @media (prefers-color-scheme: dark) {
         :root { --ink: #ececec; --muted: #a0a0a0; --line: #3a3a3a; --bg: #161616; --accent: #4c9c86; }
         input { background: #202020; }
@@ -98,6 +101,11 @@
       </form>
 
       <p id="error" role="alert"></p>
+
+      <p class="actions">
+        <button type="button" id="export">Generate Excel summary</button>
+        <span id="export-status" role="status"></span>
+      </p>
 
       <table id="log">
         <caption>Today's inventory log &middot; repeated SKUs are combined automatically</caption>

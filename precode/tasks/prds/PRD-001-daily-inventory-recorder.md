@@ -47,9 +47,10 @@ tests.
 
 Two consequences, both recorded in `DECISIONS.md`:
 
-- **`.xlsx` is reopened as OQ-12.** The export format was chosen solely to keep
-  leading zeros intact. That reason no longer applies, and `.csv` would drop a
-  dependency. OQ-12 blocks the export bead.
+- **`.xlsx` was reopened as OQ-12 and confirmed on 2026-07-31.** The export format
+  had been chosen solely to keep leading zeros intact. That reason no longer applies,
+  but the builder confirmed `.xlsx` on its remaining merits: a native workbook with
+  no import step, matching the partner's existing tooling.
 - **Accepted risk:** two distinct items differing only by leading zeros would merge
   silently. No evidence was gathered either way; worth confirming with the client.
 
@@ -251,7 +252,7 @@ Agent-facing translation of the builder-approved product story.
 | `PRD-001-FR02` | WHEN a quantity is entered THE SYSTEM SHALL store it against that SKU | `unit` | entry-creation test | enter a quantity, confirm it shows | dummy quantities | bead closeout | that entry is fast enough |
 | `PRD-001-FR03` | WHEN an entry is saved THE SYSTEM SHALL show it in today's log | `integration` | log-render test | save an entry, see it listed | 3–5 dummy entries | bead closeout | that the layout is readable at scale |
 | `PRD-001-FR04` | WHEN the same SKU is entered more than once THE SYSTEM SHALL show one consolidated total | `unit` | consolidation test incl. duplicates | enter one SKU three times, confirm one row with summed total | duplicate-SKU fixture | bead closeout | that users trust the merge |
-| `PRD-001-FR05` | WHEN the user generates a summary THE SYSTEM SHALL produce an Excel-readable file of the consolidated log | `manual` | export-shape test | open the export in Excel, confirm no repair prompt | one full dummy day | bead closeout | that the format matches the user's own sheet. **File format reopened as OQ-12** — `.xlsx` was chosen only to preserve leading zeros |
+| `PRD-001-FR05` | WHEN the user generates a summary THE SYSTEM SHALL produce an Excel-readable file of the consolidated log | `manual` | export-shape test | open the export in Excel, confirm no repair prompt | one full dummy day | bead closeout | that the format matches the user's own sheet. Format confirmed as `.xlsx` on 2026-07-31 (OQ-12) |
 | `PRD-001-FR06` | WHEN a new business day begins THE SYSTEM SHALL present an empty log without destroying the prior day | `integration` | day-rollover test | roll the date, confirm empty log and prior day retrievable | two-day fixture | bead closeout | real multi-day habit |
 | `PRD-001-NFR01` | WHEN the app is reloaded THE SYSTEM SHALL still show today's entries | `integration` | persistence test | reload, confirm entries remain | one dummy day | bead closeout | durability across devices |
 | `PRD-001-SEC01` | Repository and fixtures contain no real partner identities or supplier pricing | `static` | grep for partner names in fixtures | review fixtures before commit | — | bead closeout | that external copies are clean |
