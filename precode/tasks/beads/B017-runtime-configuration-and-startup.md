@@ -1,6 +1,6 @@
 ---
 bead_id: B017
-status: proposed
+status: in_progress
 execution_mode: builder
 bead_kind: implementation
 primary_authority: tasks/prds/PRD-002-backend.md
@@ -44,7 +44,7 @@ Last updated: 2026-08-04
 ## State
 
 - ID: `B017`
-- Status: `proposed`
+- Status: `in_progress`
 - Execution mode: `builder`
 
 ## Primary Authority
@@ -167,10 +167,10 @@ and the builder owns the platform side.
 
 ## Closeout Evidence
 
-- Checks run: pending
-- Result: pending
+- Checks run: `bash scripts/validate-memory.sh` -> pass (exit 0) at 2026-08-04T19:26:08.736474+00:00; log `logs/check-output/20260804T192608Z-bash-scripts-validate-memory.sh.log` | `npm test` -> pass (exit 0) at 2026-08-04T19:27:00.026867+00:00; log `logs/check-output/20260804T192609Z-npm-test.log`
+- Result: latest recorded command status is pass (exit 0)
 - Manual verification: pending — must state who checked, what was checked, environment, result, and remaining uncertainty
-- Files changed: pending
+- Files changed: 6 changed path(s) at last evidence update
 - Next bead: pending
 - Review decision: pending
 - Drift observed: pending — check by hand, since `files-in-play-check.py` is blind in this subfolder topology

@@ -1,6 +1,6 @@
 ---
 bead_id: B016
-status: in_progress
+status: done
 execution_mode: builder
 bead_kind: implementation
 primary_authority: tasks/prds/PRD-002-backend.md
@@ -45,7 +45,7 @@ Last updated: 2026-08-04
 ## State
 
 - ID: `B016`
-- Status: `in_progress`
+- Status: `done`
 - Execution mode: `builder`
 
 ## Primary Authority
@@ -180,20 +180,20 @@ Run from `precode/`.
 
 - Checks run: `bash scripts/validate-memory.sh` -> pass (exit 0) at 2026-08-04T19:06:38.682901+00:00; log `logs/check-output/20260804T190638Z-bash-scripts-validate-memory.sh.log` | `npm test` -> pass (exit 0) at 2026-08-04T19:06:41.623067+00:00; log `logs/check-output/20260804T190639Z-npm-test.log` | `npm test` -> pass (exit 0) at 2026-08-04T19:07:32.601465+00:00; log `logs/check-output/20260804T190641Z-npm-test.log`
 - Result: latest recorded command status is pass (exit 0)
-- Manual verification: pending — must state who checked, what was checked, environment, result, and remaining uncertainty
-- Files changed: 10 changed path(s) at last evidence update
-- Next bead: pending
-- Review decision: pending
-- Drift observed: pending — check by hand, since `files-in-play-check.py` is blind in this subfolder topology
-- Lesson to promote: pending
-- Follow-up bead needed: pending
-- Blocked escape: pending
-- Reference follow-through: pending
+- Manual verification: Who checked: Caron Ng (builder) reviewed and accepted on 2026-08-04; Claude (agent) ran the recorded checks, the mutation probes and the live end-to-end verification. What was checked: one process serves the app at `/` and the API at `/api/*`; a client-side route falls back to the app; an unknown `/api` path returns a JSON 404 rather than HTML; assets are served with usable content types; path containment refuses plain, percent-encoded, null-byte and sibling-prefix traversal, and refuses rather than clamping; sign-in, recording and read-back all work over a single origin with the Vite dev server stopped; real Chrome loads the served app with the sign-in gate intact and no console errors; the built bundle carries no session-scoped or secret content and no partner identity or pricing; and the deployment topology is recorded in `DECISIONS.md` naming both rejected alternatives. Environment: local macOS, Node 25.2.1, backend on 127.0.0.1:3000 against MongoDB Atlas, Vite stopped entirely, headless and interactive Chrome. Result: pass. Remaining uncertainty: the deployed filesystem must contain `frontend/dist` because the static root resolves out of `backend/` into a sibling directory, and that is unverified on any hosting platform; the server warns and runs API-only when no build is present, and deciding to stop instead based on environment is deferred to `B017`; path containment is hand-written rather than delegated to a reviewed plugin, so it is bounded by the cases tested and symlinks inside the build directory are untested; and no adversarial review by someone who did not build it has happened.
+- Files changed: 10 paths: `backend/src/static.js` and `backend/tests/static.test.js` added; `backend/src/app.js`, `backend/src/server.js`, `frontend/vite.config.js`, `DECISIONS.md`, `tasks/todo.md` and the B015, B016, B017 bead files modified
+- Next bead: `tasks/beads/B017-runtime-configuration-and-startup.md`
+- Review decision: accepted by Caron Ng on 2026-08-04. All three checks pass and are recorded: frontend 178 tests, backend 55 tests, `validate-memory.sh` clean. One process serves the app and the API on a single origin, verified live with the dev proxy stopped.
+- Drift observed: one crossing, declared. `tasks/beads/B015-connect-frontend-to-backend.md` was edited to set its status and name this bead as next, which the approved activation required, and it is not in this bead's `files_in_play`. Everything else was in scope: `DECISIONS.md` was declared in scope deliberately for the topology record. `frontend/dist/` is generated build output and correctly gitignored. Checked by hand, since `files-in-play-check.py` is blind in this subfolder topology.
+- Lesson to promote: Declining the conventional dependency moved a security surface into this repository. Without `@fastify/static`, path containment became ours to get right, so `resolveWithinRoot` was exported and tested directly rather than only through routes, and five mutations were used to prove the tests could fail: a naive `startsWith` without the separator, skipping percent-decoding, dropping the null-byte guard, letting `/api` reach the app fallback, and removing containment outright. A second lesson came from the code itself: the null-byte guard was first written as a literal control character, which works and is invisible, and which an editor or a copy-paste can strip while the guard still looks present. Rewriting it as an escape sequence was not cosmetic, and composing the commit message reproduced the same defect twice before it landed. Route precedence got the same treatment: static serving is a not-found handler rather than a catch-all route, so the API cannot be shadowed by registration order.
+- Follow-up bead needed: yes, three beyond `B017`. A login-creation path, which needs a `PRD-002` answer on who may create a login before it is implementable, since a deployed instance cannot onboard a business without one. A `SECURITY.md` decision on the `Secure` cookie attribute, deliberately kept out of both deployment beads so it is decided rather than buried in a diff. And the network-cost measurement for `NFR01` and `NFR02`, still unauthored.
+- Blocked escape: not needed; the bead completed without blockers.
+- Reference follow-through: not applicable — no public PrecodeOS package surfaces were changed.
 - Human contributor: Caron Ng
 - Contributor role: builder and approver
-- Agent/tool surface: pending
-- Attribution reviewed by: pending
-- Attribution uncertainty: pending
+- Agent/tool surface: Claude Code (Opus 5)
+- Attribution reviewed by: Caron Ng
+- Attribution uncertainty: none noted
 - Evidence source: `logs/check-results.jsonl`
 
 ## Handback

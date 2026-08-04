@@ -1,5 +1,5 @@
 ---
-current_bead: tasks/beads/B016-serve-built-frontend-same-origin.md
+current_bead: tasks/beads/B017-runtime-configuration-and-startup.md
 current_state: in_progress
 build_lane: Backend product definition
 active_feature_window: Frontend to backend
@@ -24,43 +24,37 @@ primary_authority: tasks/prds/PRD-002-backend.md
 > Noticed is facts only, never directives or hidden backlog.
 
 Creator: Caron Ng
-Document version: v1.6.0
+Document version: v1.7.0
 Last updated: 2026-08-04
 
 ---
 
 ## Current Bead
 
-- `tasks/beads/B016-serve-built-frontend-same-origin.md`
+- `tasks/beads/B017-runtime-configuration-and-startup.md`
 - State: `in_progress`
 - Build lane: `Backend product definition`
 - Active feature window: `Frontend to backend`
 
 ## Done When
 
-- The backend serves the built frontend at `/`, and client-side routes fall back to
-  the app rather than returning 404.
-- `/api/*` continues to be handled by the API and is never shadowed by the static
-  handler.
-- A request to `/` and a subsequent `/api/*` call resolve to the **same origin**,
-  demonstrated in a test rather than asserted in prose.
-- The app is still absent for an unauthenticated user in the sense `B015` established:
-  serving `index.html` must not expose any space's data. Static assets carry no
-  session-scoped content.
-- Serving the built app does not change any `PRD-001` recording behaviour.
-- The build output location is agreed between `frontend/vite.config.js` and the
-  backend, and neither hard-codes an absolute machine path.
-- A missing or unbuilt frontend produces a clear start-up or request error naming the
-  cause, rather than a bare 404 that reads as a routing bug.
-- The deployment topology decision is recorded in `DECISIONS.md`: **one service, the
-  backend serving the built frontend**, chosen 2026-08-04. The record must name what
-  was rejected and why, not only what was chosen — a separate frontend service on its
-  own origin was considered and rejected because it forces `SameSite=None; Secure`,
-  which removes the CSRF protection `SameSite=Strict` currently provides for free; and
-  a two-service variant keeping one browser-facing origin was rejected because the
-  `/api` routing would live in a hosting dashboard, where no test or review can reach
-  it.
-- All three checks below are run and recorded.
+- A start command exists that runs the server from environment variables only, with
+  no `.env` file present and no developer-only flags.
+- The listen host is configurable and defaults safely. `127.0.0.1` stays correct for
+  local use; a hosted instance can bind where its platform requires.
+- The port is taken from the environment when the host supplies one.
+- Missing required configuration — connection string, session secret — exits non-zero
+  with a message naming what is missing. This already holds and must not regress.
+- A data-store connection failure at start-up surfaces as a clear message rather than
+  a silent hang or an unexplained timeout.
+- **No secret is ever printed**, including at start-up, in error paths, and in the
+  connection-failure message. A connection string carries its credentials inline, so
+  logging the URI on failure is the obvious mistake to prevent.
+- The same-origin start-up guard added on 2026-08-04 still holds and is covered by a
+  test rather than only by hand.
+- `backend/.env.example` describes every variable the server reads, with no real
+  value in it.
+- Both checks below are run and recorded.
 
 ## Primary Authority File
 
@@ -68,39 +62,36 @@ Last updated: 2026-08-04
 
 ## Files In Play
 
-- `DECISIONS.md`
-- `backend/src/`
-- `backend/tests/`
 - `backend/package.json`
-- `frontend/vite.config.js`
-- `tasks/beads/B016-serve-built-frontend-same-origin.md`
+- `backend/src/server.js`
+- `backend/.env.example`
+- `backend/tests/`
+- `tasks/beads/B017-runtime-configuration-and-startup.md`
 - `tasks/todo.md`
 
 ## Checks To Run
 
 - `bash scripts/record-check.sh -- bash scripts/validate-memory.sh`
-- `bash scripts/record-check.sh --cwd ../frontend -- npm test`
 - `bash scripts/record-check.sh --cwd ../backend -- npm test`
 
 ## Explicit Out-of-Scope
 
-- A static route shadows `/api/*`, or route precedence becomes order-dependent in a
-  way a test does not pin.
-- CORS appears anywhere, or the same-origin start-up guard in `server.js` is weakened
-  or removed to make something pass.
-- A fourth runtime dependency is proposed. `PRD-002` fixed the set at `fastify`,
-  `mongodb` and `bcrypt`; anything more is a separate approval gate, and Fastify can
-  serve static files without one.
-- Any hosting platform is configured, or a platform-specific assumption is baked into
-  the code.
-- Isolation, session handling, or authorization changes in any way. This bead moves
-  files; it does not touch who may read what.
-- The frontend build starts embedding anything secret in order to make serving work.
+- A real credential, connection string, or session secret is written into any
+  committed file, including `.env.example`, a test fixture, or a default value.
+- A secret would be logged, echoed at start-up, or included in an error message.
+- A default is introduced for the session secret. A defaulted secret is worse than a
+  missing one, because it starts successfully and is identical everywhere.
+- The same-origin guard is removed, softened, or made bypassable to get a deploy
+  running.
+- Platform-specific configuration is committed, or the code begins assuming one host.
+- Scope reaches serving the frontend, CORS, cookie attributes, or product behaviour.
+- Any change to isolation, sessions, or authorization is required to make start-up
+  work. That would mean the problem has been misdiagnosed.
 - Stop condition: pause and ask before crossing any stop condition above.
 
 ## Next Up
 
-- Begin `tasks/beads/B016-serve-built-frontend-same-origin.md` only within its Done When, Files In Play, and Stop If boundaries.
+- Begin `tasks/beads/B017-runtime-configuration-and-startup.md` only within its Done When, Files In Play, and Stop If boundaries.
 - If the bead is too broad, split it before implementation.
 
 ## Open Questions
@@ -109,5 +100,5 @@ Last updated: 2026-08-04
 
 ## Noticed
 
-- Promoted from `tasks/beads/B015-connect-frontend-to-backend.md` to `tasks/beads/B016-serve-built-frontend-same-origin.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-04 18:59 UTC.
+- Promoted from `tasks/beads/B016-serve-built-frontend-same-origin.md` to `tasks/beads/B017-runtime-configuration-and-startup.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-04 19:20 UTC.
 
