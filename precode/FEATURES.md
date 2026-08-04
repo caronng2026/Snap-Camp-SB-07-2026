@@ -25,6 +25,7 @@ the requirement.
 
 | Feature | Source PRD | Status | Summary |
 |---|---|---|---|
+| Isolated Logins With Server-Side Storage | `tasks/prds/PRD-002-backend.md` | approved | A login is the isolation boundary: a username and passcode grant access to exactly one data space, stored server-side, with no path from one space to another. Lets Snap Camp serve more than one business from a single deployment. |
 | Daily Inventory Recorder | `tasks/prds/PRD-001-daily-inventory-recorder.md` | approved | Record item SKUs and quantities during the working day, consolidate repeated SKUs automatically, and produce an Excel-ready daily summary in one action — replacing manual end-of-day spreadsheet consolidation. |
 
 ## Functional Requirements
@@ -43,6 +44,24 @@ Compiled from `PRD-001`, approved 2026-07-30. IDs are stable and owned by the sh
 Requirement definition, acceptance oracles, and "what this does not prove" for each
 of these live in the shard's Acceptance Oracle Matrix. All 17 `PRD-001` requirements
 carry an oracle.
+
+## Functional Requirements — `PRD-002`
+
+Compiled from `PRD-002`, approved 2026-08-04. UX, security, and non-functional
+requirements stay in the shard beside their acceptance oracles, matching how
+`PRD-001` was compiled.
+
+| ID | Requirement | Priority | Scope |
+|---|---|---|---|
+| `PRD-002-FR01` | A username and passcode grant access to exactly one data space | P0 | v2 |
+| `PRD-002-FR02` | Entries recorded during a session are stored in that session's space and no other | P0 | v2 |
+| `PRD-002-FR03` | The daily log, consolidated totals, and export show only the signed-in space's data | P0 | v2 |
+| `PRD-002-FR04` | Signing out ends the session and returns to the sign-in screen | P0 | v2 |
+| `PRD-002-FR05` | Recording, consolidation, daily rollover, and `.xlsx` export behave exactly as `PRD-001` defines | P0 | v2 |
+| `PRD-002-FR06` | A data space persists server-side across sessions, browser resets, and redeployments | P0 | v2 |
+
+**v2 MVP slice:** the isolation loop — sign in, record, sign out, and a second login
+sees nothing of the first.
 
 ## MVP Slice
 
@@ -70,15 +89,18 @@ not to be pulled forward without a new or amended PRD.
 | Barcode scanning, inventory valuation, purchase orders, multi-location, low-stock flags | Out of scope for v1 |
 | Analytics, dashboards, reporting beyond the daily summary | Out of scope for v1 |
 | QuickBooks, Shopify, or POS integrations | Out of scope for v1 |
-| Multi-user, accounts, authentication | Out of scope for v1; v1 has no auth by decision |
-| MongoDB or any backend database | Forward-looking note only — see `DECISIONS.md`. Not a v1 requirement and not approval to activate `backend/` |
+| Multi-user | Still out of scope. **Accounts and authentication moved into scope** under `PRD-002` (approved 2026-08-04) — but as a bare login, not user management |
+| A specific database, e.g. MongoDB | **Server-side storage is now in scope** under `PRD-002`, but no database has been chosen. That is an Architecture Shaping question |
 
 ## Compilation Status
 
 | PRD | Status | Compiled | Notes |
 |---|---|---|---|
 | `PRD-001` | approved | 2026-07-30 | Functional requirements `FR01`–`FR06` compiled above |
+| `PRD-002` | approved | 2026-08-04 | Functional requirements `FR01`–`FR06` compiled above. Architecture Shaping outstanding before decomposition |
 
-Outstanding for `PRD-001` after this compilation: Architecture Shaping, decomposition
-against the chosen framework, and promotion of the acceptance oracles and behavioural
-success signals into `ACCEPTANCE.md`. None of those is authorized by this file.
+`PRD-001` is complete: Architecture Shaping was run, decomposition produced beads
+`B002`–`B008`, and all 17 requirements are delivered and accepted.
+
+`PRD-002` is approved but not yet shaped. Architecture Shaping runs next, then
+decomposition. Nothing in this file authorizes either.

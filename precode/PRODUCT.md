@@ -74,6 +74,7 @@ The anchor partner drives v1. The two witnesses confirm the design generalizes. 
 ## Strategy And Non-Goals
 
 - North star: no one retypes inventory into a spreadsheet again.
+- Delivery model: **one shared deployment serving multiple small businesses**, each signing in to its own isolated data space (decided 2026-08-03). Not one installed copy per business.
 - Current product thesis: the valuable part is not tracking inventory — it is **automatically producing the daily summary** that today costs hours of manual consolidation.
 - Explicit non-bets: becoming a full inventory management system; competing with QuickBooks, Square, or Sortly on breadth; barcode workflows.
 - Things agents should not suggest by default: barcode scanning, inventory valuation, purchase orders, multi-location, analytics dashboards, POS or accounting integrations, multi-user, or building separate variants for each of the three partners.
@@ -85,7 +86,8 @@ Product decisions that are hard decisions belong in `DECISIONS.md`. Link them he
 
 | Bet or theme | State | Source PRD or feature link | Notes |
 |---|---|---|---|
-| Daily Inventory Recorder first slice | `approved` | `tasks/prds/PRD-001-daily-inventory-recorder.md` | Approved 2026-07-30; compiled into `FEATURES.md`. Architecture Shaping outstanding before beads |
+| Isolated logins with server-side storage | `approved` | `tasks/prds/PRD-002-backend.md` | Approved 2026-08-04. Lets Snap Camp serve multiple businesses from one deployment. Architecture Shaping outstanding |
+| Daily Inventory Recorder first slice | `approved` | `tasks/prds/PRD-001-daily-inventory-recorder.md` | **Built and accepted** — all 17 requirements delivered across beads `B002`–`B008`, 119 tests. **Not yet used by a real business**, so evidence stays at strong rather than strongest |
 | SKU transformation | `deferred` | none | Named as the leading v2 wedge |
 | Combo / bundle (kit) items | `deferred` | none | Parked with transformation for v2 |
 | Self-printed QR or bin labels | `deferred` | none | Strong v2 candidate |

@@ -1,9 +1,9 @@
 ---
-current_bead: tasks/beads/B009-shape-backend-prd.md
+current_bead: tasks/beads/B010-architecture-shaping-backend.md
 current_state: in_progress
 build_lane: Backend product definition
-active_feature_window: Backend PRD shaping
-primary_authority: tasks/reference/PRD-PROTOCOL.md
+active_feature_window: Backend architecture shaping
+primary_authority: tasks/reference/ARCHITECTURE-SHAPING-PROTOCOL.md
 ---
 # PrecodeOS — Active Work File
 <!-- ANCHOR: active-work -->
@@ -24,39 +24,42 @@ primary_authority: tasks/reference/PRD-PROTOCOL.md
 > Noticed is facts only, never directives or hidden backlog.
 
 Creator: Caron Ng
-Document version: v0.9.0
-Last updated: 2026-08-03
+Document version: v1.0.0
+Last updated: 2026-08-04
 
 ---
 
 ## Current Bead
 
-- `tasks/beads/B009-shape-backend-prd.md`
+- `tasks/beads/B010-architecture-shaping-backend.md`
 - State: `in_progress`
 - Build lane: `Backend product definition`
-- Active feature window: `Backend PRD shaping`
+- Active feature window: `Backend architecture shaping`
 
 ## Done When
 
-- The backend problem is stated in plain language, or its absence is recorded.
-- The user and the painful moment are named, with whatever evidence exists.
-- It is established whether the problem is real now or anticipated later.
-- Non-goals are explicit, including which `PRD-001` decisions would be reopened.
-- Open questions are listed with what each one blocks.
-- A `PRD-002` draft exists at `status: draft` following `PRD-SHARD-SCHEMA.md`.
-- The draft is **not** approved. Approval is a separate human gate.
-- No architecture is chosen. Architecture Shaping runs only after PRD approval.
+- The six questions in `PRD-002`'s Architecture Impact section are answered:
+  backend framework and language · where isolation is enforced · data store ·
+  session mechanism · how `frontend/` and `backend/` connect in development and in
+  production · what runs locally versus deployed.
+- An Architecture Brief exists in `PRD-002`, in the format
+  `ARCHITECTURE-SHAPING-PROTOCOL.md` defines, marked `evidence_only`.
+- Every decision it records also appears in `DECISIONS.md`.
+- Owner-file impacts are named, not made — `ARCHITECTURE.md`, `API.md`,
+  `DATA-MODELS.md`, `SECURITY.md`, `PROJECT-CONTEXT.md` are updated in a later bead.
+- The `SpaceScopedStore` question is settled explicitly: whether isolation is
+  structural or depends on remembering to scope each call site.
 - Both checks below are run and recorded.
 
 ## Primary Authority File
 
-- `tasks/reference/PRD-PROTOCOL.md`
+- `tasks/reference/ARCHITECTURE-SHAPING-PROTOCOL.md`
 
 ## Files In Play
 
 - `tasks/prds/PRD-002-backend.md`
-- `CANDIDATE-QUEUE.md`
-- `tasks/beads/B009-shape-backend-prd.md`
+- `DECISIONS.md`
+- `tasks/beads/B010-architecture-shaping-backend.md`
 - `tasks/todo.md`
 
 ## Checks To Run
@@ -66,19 +69,19 @@ Last updated: 2026-08-03
 
 ## Explicit Out-of-Scope
 
-- A problem statement would have to be invented to justify the backend. Say so and
-  park it instead.
-- A technology choice starts driving the requirements rather than the reverse.
-- Any `PRD-001` decision is reopened without recording what changed and why —
-  particularly `OQ-11` (single-device), `SEC02` (no accounts), and `SEC03` (no
-  external services).
-- Scope reaches architecture, hosting, schema design, or bead proposals.
-- The draft starts being treated as approved.
+- A decision would be recorded that the builder has not made.
+- `backend/` is created, or any code or dependency is added.
+- Deployment is being decided rather than deferred.
+- Isolation would rest on remembering to scope each call site rather than on
+  structure — that is the `SEC01` risk and it should be surfaced, not accepted
+  quietly.
+- Any `PRD-002` requirement would change. That is a PRD amendment, not architecture.
+- Scope reaches decomposition.
 - Stop condition: pause and ask before crossing any stop condition above.
 
 ## Next Up
 
-- Begin `tasks/beads/B009-shape-backend-prd.md` only within its Done When, Files In Play, and Stop If boundaries.
+- Begin `tasks/beads/B010-architecture-shaping-backend.md` only within its Done When, Files In Play, and Stop If boundaries.
 - If the bead is too broad, split it before implementation.
 
 ## Open Questions
@@ -87,5 +90,5 @@ Last updated: 2026-08-03
 
 ## Noticed
 
-- Promoted from `tasks/beads/B008-measure-render-performance.md` to `tasks/beads/B009-shape-backend-prd.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-03 19:21 UTC.
+- Promoted from `tasks/beads/B009-shape-backend-prd.md` to `tasks/beads/B010-architecture-shaping-backend.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-04 16:58 UTC.
 

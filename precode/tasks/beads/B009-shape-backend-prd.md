@@ -1,6 +1,6 @@
 ---
 bead_id: B009
-status: in_progress
+status: done
 execution_mode: builder
 bead_kind: planning
 primary_authority: tasks/reference/PRD-PROTOCOL.md
@@ -39,7 +39,7 @@ Last updated: 2026-08-03
 ## State
 
 - ID: `B009`
-- Status: `in_progress`
+- Status: `done`
 - Execution mode: `builder`
 
 ## Primary Authority
@@ -155,14 +155,14 @@ avoid.
 
 - Checks run: `bash scripts/validate-memory.sh` -> pass (exit 0) at 2026-08-03T19:29:07.238099+00:00; log `logs/check-output/20260803T192907Z-bash-scripts-validate-memory.sh.log` | `python3 scripts/file-inventory.py --check` -> pass (exit 0) at 2026-08-03T19:29:07.671644+00:00; log `logs/check-output/20260803T192907Z-python3-scripts-file-inventory.py-check.log`
 - Result: latest recorded command status is pass (exit 0)
-- Manual verification: Who checked: Claude (agent), 2026-08-03. What was checked: `PRD-002-backend.md` created at `status: draft` with all 24 sections required by `PRD-SHARD-SCHEMA.md`; the Problem section deliberately left open with the reason recorded; five `PRD-001` decisions listed as inherited non-goals each with what reopening costs; four open questions BQ-1 to BQ-4 each naming what it would reopen and what it blocks; no technology, architecture, hosting, or schema proposed; `PRD-001`, `B001` and `frontend/` confirmed untouched by Git diff. Environment: local macOS checkout, run from `precode/`. Result: pass — the skeleton is complete as scaffolding. Remaining uncertainty: **no backend problem was found**, so the PRD cannot progress; whether one exists is unknown until BQ-1 is answered by the builder and client.
+- Manual verification: Who checked: Caron Ng (builder) read `PRD-002` in full and approved it on 2026-08-04; Claude (agent) covered the structural layer. What was checked: `PRD-002` created and taken from empty skeleton to approved — 16 requirements each with an acceptance oracle, all eight BQ questions resolved, zero `not established` placeholders, all 24 schema sections present, seven of eight Anti-Shallow checks passing before the read and eight after; `PRD-001`, `B001` and `frontend/` verified untouched by Git diff throughout. Environment: local macOS checkout, run from `precode/`. Result: pass. Remaining uncertainty: `SEC01` is a negative claim over an unbounded set of requests and can only ever be tested against attacks that were thought of; `NFR01` has no baseline because the `PRD-001-UX01` paper comparison was deliberately not measured, and the window closes once a network round trip exists.
 - Files changed: 1 changed path(s) at last evidence update
-- Next bead: none named yet
-- Review decision: pending human acceptance
+- Next bead: `tasks/beads/B010-architecture-shaping-backend.md`
+- Review decision: accepted by Caron Ng on 2026-08-04, by approving `PRD-002` after a full read. The bead's Objective — produce a reviewable draft starting from the problem rather than the technology — was met, and the problem it found was real rather than invented.
 - Drift observed: yes, and one of it was an **explicit override of a stop condition**. On 2026-08-04 the builder directed an amendment to `PRD-001-UX01`, which this bead lists under Explicitly Not In Scope as *"Amending `PRD-001`, which is complete"*. The instruction named the PRD directly and was deliberate, so it is recorded as an override rather than treated as ordinary drift; the stop condition surfaced it rather than being bypassed silently. Separately, `DECISIONS.md` was edited to record three backend decisions and this one, and it is not in this bead's `files_in_play` — the same declared-boundary crossing as earlier PRD amendments. All other changed files were in scope. Checked by hand, since `files-in-play-check.py` is blind in this topology.
-- Lesson to promote: a stated technology is not a problem statement. The only backend input was the client's intent to use MongoDB, and `PRD-001` had already closed the three problems a backend usually solves — each as a recorded decision, not an oversight. Recording those closures as inherited non-goals that must be *explicitly reopened* is what stops a new PRD quietly assuming its way past earlier decisions. Listing what each open question would reopen makes the cost of an answer visible before it is given.
-- Follow-up bead needed: none from this bead. `PRD-002` is parked pending BQ-1. Carried forward from v1: the `UX01` timing comparison, real Tab-key navigation, browser re-check of consolidation since the case amendment, and observing a real midnight roll.
-- Blocked escape: not needed. The bead anticipated this outcome — its Objective states that if no problem survives the question, saying so and parking is a legitimate result rather than a failure. That is what happened.
+- Lesson to promote: the bead was written to allow the answer "there is no problem, park it", and that possibility is what made the shaping honest. The first pass found only a stated technology and recorded the absence rather than manufacturing a justification; the real problem — tenant isolation on a shared deployment — surfaced two exchanges later and was nothing like the MongoDB note that started it. Leaving room to conclude nothing is worth building is what stops a PRD becoming a rationalisation.
+- Follow-up bead needed: yes — Architecture Shaping for `PRD-002`, which is `B010`. Carried forward from v1: real Tab-key navigation unexercised, consolidation not re-checked in the browser since the case amendment, no real midnight roll observed, and v1 never used for a real day.
+- Blocked escape: not needed; the bead completed without blockers.
 - Reference follow-through: not applicable — no public PrecodeOS package surfaces were changed.
 - Human contributor: Caron Ng
 - Contributor role: builder and approver

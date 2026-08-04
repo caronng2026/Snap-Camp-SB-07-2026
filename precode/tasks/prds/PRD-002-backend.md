@@ -1,6 +1,6 @@
 ---
 prd_id: PRD-002
-status: draft
+status: approved
 owner: user
 risk_level: high
 feature_link: TBD
@@ -24,19 +24,16 @@ Last updated: 2026-08-03
 ## State
 
 - ID: `PRD-002`
-- Status: `draft`
+- Status: `approved`
 - Owner: `user`
 - Risk level: `high`
-- Last updated: `2026-08-03`
+- Last updated: `2026-08-04`
 
-**A problem statement now exists**, following confirmation on 2026-08-03 that Snap
-Camp is deployed as one shared product serving multiple businesses. That answered
-`BQ-1`.
-
-**This PRD is still a draft and is far from approvable.** It has no requirements, no
-acceptance oracles, and no architecture. Several open questions remain, and the
-scope is materially larger than all of v1 combined. `PRD-001` and v1 are unaffected
-by this file.
+**Approved 2026-08-04 by Caron Ng.** Approval means the product destination is
+stable enough to compile into `FEATURES.md` and to shape. It is **not** architecture
+permission and **not** permission to code. Architecture Shaping runs next; deployment
+comes only after backend beads exist and are built. No bead may be activated without
+an approved transition.
 
 ## Feature Link
 
@@ -434,10 +431,8 @@ Every surface v1 closed reopens here. This is why `risk_level` is `high`.
 - **Project context impact:** `material`. This activates `backend/`, changes the
   storage boundary, and introduces a network boundary where `PRD-001` has none.
 - `PROJECT-CONTEXT.md` loaded: `yes`
-- **Architecture Shaping: needed, not yet run.** Its load condition is an approved
-  PRD, so it runs after approval and before decomposition. It triggers on auth, data
-  models, APIs, external services, dependencies, and deployment — all six.
-- Architecture Brief evidence: none yet, correctly.
+- **Architecture Shaping: completed 2026-08-04** under bead `B010`.
+- Architecture Brief evidence: see the `Architecture Brief` section below.
 - **Owner-file updates expected after Architecture Shaping:** `ARCHITECTURE.md`
   (backend shape, how `frontend/` and `backend/` connect), `API.md` (currently records
   that no server boundary exists — that becomes false), `DATA-MODELS.md` (space,
@@ -448,6 +443,74 @@ Every surface v1 closed reopens here. This is why `risk_level` is `high`.
   PRD-level gaps: backend framework and language · where isolation is enforced ·
   data store · session mechanism · how `frontend/` talks to `backend/` in development
   and in production · what runs locally versus deployed.
+
+## Architecture Brief
+
+- Source PRD: `PRD-002`
+- Requirement IDs: all 16
+- Brief status: `evidence_only` — this does not approve coding, activate a bead, or become architecture authority by itself
+- Completed: 2026-08-04 under bead `B010`, six questions
+
+### Triggering Risk Surfaces
+
+- **Auth/access: triggered.** Introduced for the first time. Username, passcode, session.
+- **User or private data: triggered.** Inventory data leaves the user's machine for the first time.
+- **Data model or migration: triggered.** Space, login, session, and the scoping of `DailyLog`. No migration from v1 (`BQ-6`).
+- **API, webhook, background job: triggered.** A server boundary now exists where `API.md` records none.
+- **External service: not triggered.** No third party. The app calls only its own backend.
+- **Dependency, secret, environment: triggered.** Framework, data store, credential hashing, a session secret.
+- **Multi-step workflow or state: triggered.** Signed-out → signed-in → recording → signed-out.
+- **Multi-system coordination: triggered.** `frontend/` and `backend/` must move together.
+
+Seven of eight. `PRD-001`'s brief triggered four, all implementation-side.
+
+### Boundary Notes
+
+- **Framework:** Node with **Fastify**. One language across both halves, one toolchain. Schema validation is first-class, which matters when every request carries values that must not be trusted.
+- **Isolation boundary:** a **space-scoped data-access layer**. Every data function takes a space id as its first argument, and **no unscoped alternative exists to call**. Isolation is structural, not a rule to remember. Session middleware rejects before any handler runs, and the space id comes from the session — never from the request body, query, or headers.
+- **Data store:** **SQLite**, one file, no server process, trivially backed up. At three businesses recording roughly 200 entries a day this is nowhere near a constraint. **This supersedes the MongoDB forward-looking note**, which was context and never a requirement.
+- **Sessions:** signed **HTTP-only cookie** with a **server-side session table**. `SEC04` requires sign-out and expiry to invalidate server-side, which a stateless token cannot do without a revocation list — and that is a session table with extra steps.
+- **Frontend/backend connection:** **same origin in both environments.** Vite dev proxy in development; the backend serves the built frontend in production. No CORS, no preflight, no `SameSite` puzzles, one process to run.
+- **Manual setup:** none. Local development only.
+- **Deployment:** **deliberately not decided.** `PRD-002` places it after backend beads exist and are built.
+
+### Owner File Impacts
+
+Named here, made in a later bead — this bead does not edit them.
+
+- `ARCHITECTURE.md`: backend shape, the scoped-store boundary, how the two halves connect.
+- `API.md`: currently records that no server boundary exists. That becomes false; it needs route conventions and the rule that authorization precedes every handler.
+- `DATA-MODELS.md`: `Login`, `Space`, `Session`, and how `DailyLog` is scoped.
+- `SECURITY.md`: auth model, credential hashing, session handling, secret management, and the isolation guarantee with its limits.
+- `PROJECT-CONTEXT.md`: stack, integration boundaries, project-specific checks, deployment target.
+- `DECISIONS.md`: **done** — all five decisions recorded 2026-08-04.
+
+### Approval Gates And Stop Conditions
+
+- **Approval required before:** each package once selected, with licence and size reported · creating `backend/` · any dependency beyond the ones named · any deployment · activating any bead.
+- **Stop if:** a data-access path exists that can be called without a space id · authorization is decided anywhere but server-side · a recovery, reset, or admin path appears · real partner data reaches a fixture or a running system.
+- **Return to PRD if:** multi-device, offline, or per-user roles become necessary — each was closed by a recorded answer.
+- **Raise an unblocker if:** the chosen SQLite or hashing package cannot be verified as maintained and permissively licensed.
+
+### Verification Evidence Expected
+
+- **Automated:** the cross-space attempt suite for `SEC01` — id substitution, enumeration, token reuse, non-existent ids — with identical denial responses for "not yours" and "does not exist"; a test asserting no unscoped data function is exported; session expiry and post-sign-out replay refused; the full `PRD-001` suite passing against server-backed storage.
+- **Manual:** sign in as two logins in turn and confirm neither sees the other; inspect the stored credential; read server logs after a cross-space attempt.
+- **Sensitive-path proof:** `SEC01` and `SEC02` are the sensitive paths. Both need recorded evidence, not a passing local run.
+- **Not sufficient:** a green isolation suite. It bounds the attempts that were thought of, and nothing more.
+
+### Bead Implications
+
+- **Required planning depth:** drops to `brief` for most beads now that the stack is fixed and `files_in_play` can bind to real paths under `backend/`.
+- **Likely slice type:** vertical, through the auth boundary first.
+- **Run contract needed:** yes for the first bead — it introduces credentials and a session secret.
+- **Candidate first bead:** scaffold `backend/` with Fastify, the session middleware, and the scoped store, proving a request without a session is refused. Establishes `SEC02` structurally rather than retrofitting it.
+- **Unresolved blockers:** package selection for SQLite bindings and password hashing; both verified at implementation time, not assumed here.
+
+### Do Not Decide Yet
+
+- **Repo facts the agent must inspect first:** current Node version; whether the chosen SQLite and hashing packages are present, permissively licensed, and maintained at the time of use.
+- **Left to the agent:** file and module names under `backend/`, route paths, table names, test layout, and the internal shape of the session record — provided the scoped-store boundary and server-side authorization hold.
 
 ## Module / Interface Candidates
 
@@ -494,7 +557,7 @@ structure.
 - Sensitive surfaces identified: **yes** — every surface v1 closed reopens, listed with status.
 - Authority files identified: **yes**, including which change after Architecture Shaping.
 - First bead can be one logical unit: **yes** — sign in, record, sign out, see an empty log as a second login.
-- Generated text reviewed by user: **pending** — this is the read being asked for.
+- Generated text reviewed by user: **yes** — read by Caron Ng on 2026-08-04.
 
 ## Bead Proposals
 
@@ -565,9 +628,9 @@ architecture, and no bead proposals. See `Approval`.
 
 ## Approval
 
-- Approved by: *not approved*
-- Approved on: *not approved*
-- Approval notes: **Ready for the builder's read.** All eight open questions are
+- Approved by: Caron Ng
+- Approved on: 2026-08-04
+- Approval notes: **Approved 2026-08-04 after a full read by the builder.** All eight open questions are
   resolved, 16 requirements each carry an acceptance oracle, the risk model and
   approval gates are explicit, and provisional bead proposals show the work
   decomposes sensibly.
