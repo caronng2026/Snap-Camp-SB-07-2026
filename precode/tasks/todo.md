@@ -1,5 +1,5 @@
 ---
-current_bead: tasks/beads/B015-connect-frontend-to-backend.md
+current_bead: tasks/beads/B016-serve-built-frontend-same-origin.md
 current_state: in_progress
 build_lane: Backend product definition
 active_feature_window: Frontend to backend
@@ -24,31 +24,42 @@ primary_authority: tasks/prds/PRD-002-backend.md
 > Noticed is facts only, never directives or hidden backlog.
 
 Creator: Caron Ng
-Document version: v1.5.0
+Document version: v1.6.0
 Last updated: 2026-08-04
 
 ---
 
 ## Current Bead
 
-- `tasks/beads/B015-connect-frontend-to-backend.md`
+- `tasks/beads/B016-serve-built-frontend-same-origin.md`
 - State: `in_progress`
 - Build lane: `Backend product definition`
 - Active feature window: `Frontend to backend`
 
 ## Done When
 
-- A sign-in screen exists; the recorder is not reachable without a session.
-- Vite proxies `/api` to the backend in development, so the app is same-origin.
-- Entries are written to and read from the backend, not `localStorage`.
-- Consolidation, day rollover, and `.xlsx` export behave exactly as `PRD-001`
-  defines, now over server data.
-- The signed-in identity is visible on every screen state while signed in.
-- Signing out returns to the sign-in screen.
-- A failed request shows a plain message and **preserves the typed entry**.
-- **SKU normalisation is settled**: the rule exists in two places by necessity — the
-  backend cannot trust the client, and the frontend needs it for display — and a
-  contract test asserts the two agree, so they cannot drift silently.
+- The backend serves the built frontend at `/`, and client-side routes fall back to
+  the app rather than returning 404.
+- `/api/*` continues to be handled by the API and is never shadowed by the static
+  handler.
+- A request to `/` and a subsequent `/api/*` call resolve to the **same origin**,
+  demonstrated in a test rather than asserted in prose.
+- The app is still absent for an unauthenticated user in the sense `B015` established:
+  serving `index.html` must not expose any space's data. Static assets carry no
+  session-scoped content.
+- Serving the built app does not change any `PRD-001` recording behaviour.
+- The build output location is agreed between `frontend/vite.config.js` and the
+  backend, and neither hard-codes an absolute machine path.
+- A missing or unbuilt frontend produces a clear start-up or request error naming the
+  cause, rather than a bare 404 that reads as a routing bug.
+- The deployment topology decision is recorded in `DECISIONS.md`: **one service, the
+  backend serving the built frontend**, chosen 2026-08-04. The record must name what
+  was rejected and why, not only what was chosen — a separate frontend service on its
+  own origin was considered and rejected because it forces `SameSite=None; Secure`,
+  which removes the CSRF protection `SameSite=Strict` currently provides for free; and
+  a two-service variant keeping one browser-facing origin was rejected because the
+  `/api` routing would live in a hosting dashboard, where no test or review can reach
+  it.
 - All three checks below are run and recorded.
 
 ## Primary Authority File
@@ -57,13 +68,12 @@ Last updated: 2026-08-04
 
 ## Files In Play
 
-- `frontend/src/`
-- `frontend/tests/`
-- `frontend/index.html`
-- `frontend/vite.config.js`
+- `DECISIONS.md`
 - `backend/src/`
 - `backend/tests/`
-- `tasks/beads/B015-connect-frontend-to-backend.md`
+- `backend/package.json`
+- `frontend/vite.config.js`
+- `tasks/beads/B016-serve-built-frontend-same-origin.md`
 - `tasks/todo.md`
 
 ## Checks To Run
@@ -74,18 +84,23 @@ Last updated: 2026-08-04
 
 ## Explicit Out-of-Scope
 
-- `PRD-001` behaviour changes rather than being preserved. Storage moves; behaviour
-  does not.
-- Offline support, retry queues, or optimistic writes appear — `BQ-7` ruled them out.
-- A second dependency is needed to talk to the backend. `fetch` is built in.
-- Isolation enforcement moves to the client in any form.
-- The two SKU normalisations are allowed to differ.
-- Scope reaches the network-cost measurement, which is bead 4.
+- A static route shadows `/api/*`, or route precedence becomes order-dependent in a
+  way a test does not pin.
+- CORS appears anywhere, or the same-origin start-up guard in `server.js` is weakened
+  or removed to make something pass.
+- A fourth runtime dependency is proposed. `PRD-002` fixed the set at `fastify`,
+  `mongodb` and `bcrypt`; anything more is a separate approval gate, and Fastify can
+  serve static files without one.
+- Any hosting platform is configured, or a platform-specific assumption is baked into
+  the code.
+- Isolation, session handling, or authorization changes in any way. This bead moves
+  files; it does not touch who may read what.
+- The frontend build starts embedding anything secret in order to make serving work.
 - Stop condition: pause and ask before crossing any stop condition above.
 
 ## Next Up
 
-- Begin `tasks/beads/B015-connect-frontend-to-backend.md` only within its Done When, Files In Play, and Stop If boundaries.
+- Begin `tasks/beads/B016-serve-built-frontend-same-origin.md` only within its Done When, Files In Play, and Stop If boundaries.
 - If the bead is too broad, split it before implementation.
 
 ## Open Questions
@@ -94,5 +109,5 @@ Last updated: 2026-08-04
 
 ## Noticed
 
-- Promoted from `tasks/beads/B014-space-scoped-store.md` to `tasks/beads/B015-connect-frontend-to-backend.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-04 17:46 UTC.
+- Promoted from `tasks/beads/B015-connect-frontend-to-backend.md` to `tasks/beads/B016-serve-built-frontend-same-origin.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-04 18:59 UTC.
 

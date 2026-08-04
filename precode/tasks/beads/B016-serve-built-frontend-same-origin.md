@@ -1,0 +1,207 @@
+---
+bead_id: B016
+status: in_progress
+execution_mode: builder
+bead_kind: implementation
+primary_authority: tasks/prds/PRD-002-backend.md
+depends_on: []
+parent_prd: PRD-002
+requirement_ids:
+  - PRD-002-FR05
+files_in_play:
+  - DECISIONS.md
+  - backend/src/
+  - backend/tests/
+  - backend/package.json
+  - frontend/vite.config.js
+  - tasks/beads/B016-serve-built-frontend-same-origin.md
+  - tasks/todo.md
+checks:
+  - bash scripts/record-check.sh -- bash scripts/validate-memory.sh
+  - bash scripts/record-check.sh --cwd ../frontend -- npm test
+  - bash scripts/record-check.sh --cwd ../backend -- npm test
+verification_type:
+  - unit
+  - integration
+delegation_mode: human_in_loop
+test_strategy: failing_first
+review_context: fresh_context_recommended
+complexity: standard
+required_planning_depth: brief
+autonomy_level: supervised
+---
+# B016 — Serve The Built Frontend Same-Origin
+<!-- ANCHOR: b016-serve-built-frontend-same-origin -->
+
+> AUTHORITY: The backend serves the built frontend, so the deployed app is one origin.
+> NOT_AUTHORITY: Hosting platform configuration, runtime environment variables, start-up, DNS, certificates, or credentials.
+> LOAD_WHEN: Making the production artifact same-origin.
+> CLASS: active-task
+
+Creator: Caron Ng
+Document version: v0.1.0
+Last updated: 2026-08-04
+
+## State
+
+- ID: `B016`
+- Status: `in_progress`
+- Execution mode: `builder`
+
+## Primary Authority
+
+- `tasks/prds/PRD-002-backend.md`
+
+## Depends On
+
+- none
+
+`B015` connected the frontend to the backend and is closed. Not declared formally,
+for the usual transition-checker reason: a declared dependency must already be
+`done`, and the predecessor only reaches `done` during the transition that would
+activate this bead.
+
+## Parent PRD
+
+- `PRD-002` — approved 2026-08-04.
+
+## Requirement IDs
+
+- `PRD-002-FR05` — the recorder works against server-stored data. In production that
+  requires the app and the API to share an origin, because the session cookie is
+  `SameSite=Strict` and no CORS configuration exists.
+
+## Objective
+
+In production the backend serves the built frontend, so the browser loads the app
+and calls the API from a single origin. This is what makes the recorded same-origin
+architecture true of a deployed artifact rather than only of the dev server.
+
+## Why This Is Its Own Bead
+
+`ARCHITECTURE.md` records same-origin in both environments: Vite proxies `/api` in
+development, and **the backend serves the built frontend in production**. The first
+half exists; the second half has never been written. Without it a deployment yields
+an API and no application, and the only ways to reach the app become cross-origin —
+which the cookie and the missing CORS setup both forbid.
+
+The builder settled the topology on 2026-08-04: one service. That closes the question
+this bead depends on, and means the frontend is **not** deployed as its own service.
+
+## Done When
+
+- The backend serves the built frontend at `/`, and client-side routes fall back to
+  the app rather than returning 404.
+- `/api/*` continues to be handled by the API and is never shadowed by the static
+  handler.
+- A request to `/` and a subsequent `/api/*` call resolve to the **same origin**,
+  demonstrated in a test rather than asserted in prose.
+- The app is still absent for an unauthenticated user in the sense `B015` established:
+  serving `index.html` must not expose any space's data. Static assets carry no
+  session-scoped content.
+- Serving the built app does not change any `PRD-001` recording behaviour.
+- The build output location is agreed between `frontend/vite.config.js` and the
+  backend, and neither hard-codes an absolute machine path.
+- A missing or unbuilt frontend produces a clear start-up or request error naming the
+  cause, rather than a bare 404 that reads as a routing bug.
+- The deployment topology decision is recorded in `DECISIONS.md`: **one service, the
+  backend serving the built frontend**, chosen 2026-08-04. The record must name what
+  was rejected and why, not only what was chosen — a separate frontend service on its
+  own origin was considered and rejected because it forces `SameSite=None; Secure`,
+  which removes the CSRF protection `SameSite=Strict` currently provides for free; and
+  a two-service variant keeping one browser-facing origin was rejected because the
+  `/api` routing would live in a hosting dashboard, where no test or review can reach
+  it.
+- All three checks below are run and recorded.
+
+## Explicitly Not In Scope
+
+- **Hosting platform configuration of any kind** — Render services, build commands,
+  dashboard environment variables, Atlas network allowlists, DNS, certificates.
+- **Runtime configuration and start-up**, including the `start` script and host
+  binding. That is `B017`.
+- **The `Secure` cookie flag.** Raised separately as a `SECURITY.md`-governed
+  decision; it must not arrive inside this bead's diff.
+- **A login-creation path.** Separate scope — see this bead's Handback.
+- Any CORS configuration, or any change that makes cross-origin viable.
+- Network-cost measurement (`NFR01`, `NFR02`).
+
+## Files In Play
+
+- `DECISIONS.md` — the deployment topology decision, declared in scope deliberately
+- `backend/src/` — the static-serving route
+- `backend/tests/` — the same-origin and route-precedence tests
+- `backend/package.json` — only if serving requires a dependency, which is an
+  approval gate in its own right (see Stop If)
+- `frontend/vite.config.js` — only if the build output location must be settled
+- `tasks/beads/B016-serve-built-frontend-same-origin.md`, `tasks/todo.md`
+
+## Checks
+
+- `bash scripts/record-check.sh -- bash scripts/validate-memory.sh`
+- `bash scripts/record-check.sh --cwd ../frontend -- npm test`
+- `bash scripts/record-check.sh --cwd ../backend -- npm test`
+
+Run from `precode/`.
+
+## Verification Type
+
+- `unit`
+- `integration`
+
+## Delegation Mode
+
+`human_in_loop` — this decides the shape of the deployed artifact.
+
+## Test Strategy
+
+`failing_first`
+
+## Review Context
+
+`fresh_context_recommended`
+
+## Stop If
+
+- A static route shadows `/api/*`, or route precedence becomes order-dependent in a
+  way a test does not pin.
+- CORS appears anywhere, or the same-origin start-up guard in `server.js` is weakened
+  or removed to make something pass.
+- A fourth runtime dependency is proposed. `PRD-002` fixed the set at `fastify`,
+  `mongodb` and `bcrypt`; anything more is a separate approval gate, and Fastify can
+  serve static files without one.
+- Any hosting platform is configured, or a platform-specific assumption is baked into
+  the code.
+- Isolation, session handling, or authorization changes in any way. This bead moves
+  files; it does not touch who may read what.
+- The frontend build starts embedding anything secret in order to make serving work.
+
+## Closeout Evidence
+
+- Checks run: `bash scripts/validate-memory.sh` -> pass (exit 0) at 2026-08-04T19:06:38.682901+00:00; log `logs/check-output/20260804T190638Z-bash-scripts-validate-memory.sh.log` | `npm test` -> pass (exit 0) at 2026-08-04T19:06:41.623067+00:00; log `logs/check-output/20260804T190639Z-npm-test.log` | `npm test` -> pass (exit 0) at 2026-08-04T19:07:32.601465+00:00; log `logs/check-output/20260804T190641Z-npm-test.log`
+- Result: latest recorded command status is pass (exit 0)
+- Manual verification: pending — must state who checked, what was checked, environment, result, and remaining uncertainty
+- Files changed: 10 changed path(s) at last evidence update
+- Next bead: pending
+- Review decision: pending
+- Drift observed: pending — check by hand, since `files-in-play-check.py` is blind in this subfolder topology
+- Lesson to promote: pending
+- Follow-up bead needed: pending
+- Blocked escape: pending
+- Reference follow-through: pending
+- Human contributor: Caron Ng
+- Contributor role: builder and approver
+- Agent/tool surface: pending
+- Attribution reviewed by: pending
+- Attribution uncertainty: pending
+- Evidence source: `logs/check-results.jsonl`
+
+## Handback
+
+Return to the builder with the recorded check results and a local demonstration that
+one process serves both the app and the API on one origin.
+
+Do not activate a next bead. Two items are deliberately outside this bead and still
+open: a login-creation path, without which a deployed instance cannot onboard any
+business; and the `Secure` cookie flag, which is a `SECURITY.md` decision rather than
+a deployment detail.

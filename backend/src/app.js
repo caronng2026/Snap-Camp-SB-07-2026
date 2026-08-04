@@ -13,13 +13,14 @@ import Fastify from 'fastify'
 import { verifyCredentials } from './auth.js'
 import { createSession, resolveSession, destroySession } from './session.js'
 import { createStore } from './store.js'
+import { registerStatic } from './static.js'
 
 export const SESSION_COOKIE = 'sc_session'
 
 /** Identical for "wrong passcode", "no such user", and "not your data". */
 const DENIED = { error: 'unauthorized' }
 
-export function createApp({ db, sessionSecret, logger = false }) {
+export function createApp({ db, sessionSecret, logger = false, staticRoot } = {}) {
   const app = Fastify({ logger })
   const store = createStore(db)
 
@@ -115,6 +116,11 @@ export function createApp({ db, sessionSecret, logger = false }) {
       return reply.code(400).send({ error: 'bad_request' })
     }
   })
+
+  // Registered last, and only as a not-found handler, so nothing above can be
+  // shadowed by it. Omitting staticRoot leaves the process API-only, which is what
+  // the test suites use.
+  if (staticRoot) registerStatic(app, staticRoot)
 
   return app
 }

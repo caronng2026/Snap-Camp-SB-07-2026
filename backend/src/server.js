@@ -6,7 +6,10 @@
  */
 
 import { MongoClient } from 'mongodb'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { createApp } from './app.js'
+import { DEFAULT_STATIC_ROOT } from './static.js'
 
 const uri = process.env.MONGO_URI
 const dbName = process.env.MONGO_DB ?? 'snapcamp'
@@ -54,7 +57,27 @@ if (originOf(publicUrl) !== originOf(frontendOrigin)) {
 const client = new MongoClient(uri, { serverSelectionTimeoutMS: 15000 })
 await client.connect()
 
-const app = createApp({ db: client.db(dbName), sessionSecret, logger: true })
+/**
+ * Same-origin in production means this process serves the app as well as the API.
+ *
+ * Locally the Vite dev server proxies /api instead, so a build need not exist; the
+ * backend then runs API-only and says so. Making that a hard failure depends on
+ * knowing the environment, which is runtime configuration and belongs to B017.
+ */
+const hasBuild = existsSync(resolve(DEFAULT_STATIC_ROOT, 'index.html'))
+if (!hasBuild) {
+  console.warn(
+    `No frontend build at ${DEFAULT_STATIC_ROOT} — running API-only. Page requests will 404.\n` +
+      'Run `npm run build` in frontend/ to serve the app from this process.',
+  )
+}
+
+const app = createApp({
+  db: client.db(dbName),
+  sessionSecret,
+  logger: true,
+  staticRoot: hasBuild ? DEFAULT_STATIC_ROOT : undefined,
+})
 await app.listen({ port, host })
 app.log.info(`Snap Camp backend on ${publicUrl} (same-origin with ${frontendOrigin})`)
 

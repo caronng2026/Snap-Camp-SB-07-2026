@@ -1,6 +1,6 @@
 ---
 bead_id: B015
-status: in_progress
+status: done
 execution_mode: builder
 bead_kind: implementation
 primary_authority: tasks/prds/PRD-002-backend.md
@@ -49,7 +49,7 @@ Last updated: 2026-08-04
 ## State
 
 - ID: `B015`
-- Status: `in_progress`
+- Status: `done`
 - Execution mode: `builder`
 
 ## Primary Authority
@@ -141,7 +141,7 @@ accepted.
 - Result: latest recorded command status is pass (exit 0)
 - Manual verification: Who checked: Caron Ng (builder) signed in and used the recorder in Chrome and confirmed the autofill fix; Claude (agent) ran the automated checks and the live end-to-end probes. What was checked: sign-in gates the recorder; entries write to and read from MongoDB Atlas rather than `localStorage`; consolidation, rollover and `.xlsx` export behave as `PRD-001` defines over server data; the signed-in space is visible while signed in; sign-out returns to the sign-in screen and is invalidated server-side; a save the server refuses shows a plain message and preserves the typed SKU and quantity; two logins in separate spaces cannot see each other's entries; and the SKU normalisation contract test holds the frontend and backend rules together. Environment: local macOS, backend on 127.0.0.1:3000 against MongoDB Atlas, Vite dev server on localhost:5174 proxying `/api`, Chrome plus headless Chrome, Node 25.2.1. Result: pass. Remaining uncertainty: no way to create a login exists in the product, so both test logins were seeded from a scratchpad one-off; `SEC01` remains a negative claim and only the attempts we thought of were refused; a real business day, real Tab-key navigation and a real midnight roll are still unobserved; concurrent writes from two devices are untested; and the two seeded `e2e-*` logins still exist in Atlas.
 - Files changed: 17 changed path(s) at last evidence update
-- Next bead: none
+- Next bead: `tasks/beads/B016-serve-built-frontend-same-origin.md`
 - Review decision: accepted by Caron Ng on 2026-08-04 after verifying sign-in, recording, sign-out and the autofill fix in Chrome. All three checks pass and are recorded: frontend 174 tests, backend 37 tests, `validate-memory.sh` clean.
 - Drift observed: none. Changed paths were `frontend/index.html`, `frontend/vite.config.js`, `frontend/src/main.js`, new `frontend/src/api.js`, six modified and four new files under `frontend/tests/`, this bead file and `tasks/todo.md` — all inside `files_in_play`. `backend/src/` was read but not modified, so serving the built frontend was not needed. `frontend/src/storage.js` was deliberately left in place rather than deleted. Checked by hand, since `files-in-play-check.py` is blind in this subfolder topology.
 - Lesson to promote: Two lessons. First, the suite went green at 174 tests and still missed the defect that mattered: signing in as a second business failed because Chrome filled the first business's saved passcode over the typed one, and jsdom has no password manager so no test could see it. It was diagnosed only by a split experiment the builder ran by hand — a clean Chrome profile worked, an incognito window of the saving profile failed, because incognito isolates cookies but shares the profile's saved passwords. That split is what ruled out the server and the session. Second, the identical-denial rule that prevents username enumeration is also what made the failure undiagnosable from the server log, since wrong-passcode and unknown-username are byte-identical by design. That is the right trade for a multi-tenant product, but the cost is real and should be paid knowingly rather than 'fixed' later by loosening the message.
