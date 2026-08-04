@@ -1,6 +1,6 @@
 ---
 bead_id: B014
-status: in_progress
+status: done
 execution_mode: builder
 bead_kind: implementation
 primary_authority: tasks/prds/PRD-002-backend.md
@@ -45,7 +45,7 @@ Last updated: 2026-08-04
 ## State
 
 - ID: `B014`
-- Status: `in_progress`
+- Status: `done`
 - Execution mode: `builder`
 
 ## Primary Authority
@@ -152,7 +152,7 @@ carrying the assumptions that built it.
 - Result: latest recorded command status is pass (exit 0)
 - Manual verification: Who checked: Claude (agent), 2026-08-04. What was checked: 37 tests across three files — 13 auth, 11 store, 13 cross-space isolation; plus two structural audits by grep, confirming `collection('entries')` appears only in `src/store.js` and that no route reads a space id from a request body, query string, or header. The isolation suite covers id substitution through body, query, header and path; enumeration of day keys; forged, absent, expired and replayed sessions; malformed input; and byte-identical denials. Environment: local macOS, Node v25.2.1, live MongoDB Atlas, throwaway `snapcamp_test_store` and `snapcamp_test_isolation` databases, both dropped. Result: pass. Remaining uncertainty: **`SEC01` is a negative claim over an unbounded set of requests, and 37 tests bound only the attempts that were thought of** — paths nobody imagined remain uncovered and no suite can close that; no human has exercised isolation through a browser; no adversarial review by a second party has been done; and the store has not been tested under concurrent writes from two sessions.
 - Files changed: 7 changed path(s) at last evidence update
-- Next bead: none named yet — bead 3 is `connect-frontend-to-backend`
+- Next bead: `tasks/beads/B015-connect-frontend-to-backend.md`
 - Review decision: accepted by Caron Ng on 2026-08-04. 37 tests pass and are recorded, plus two structural audits confirming the collection handle exists only in `src/store.js` and that no route reads a space id from a request. `SEC01` is enforced structurally. Accepted with four items open and recorded: the suite bounds only the attacks that were thought of; no adversarial review by a second party; no concurrent-write test; no browser exercise. The second of those should be closed before any deployment.
 - Drift observed: none. Changed files were `backend/src/store.js` (new), `backend/src/app.js`, `backend/tests/store.test.js` and `backend/tests/isolation.test.js` (both new), this bead file and `tasks/todo.md` — all within the declared `files_in_play`. `frontend/` untouched; no consolidation or export work; no new dependency. Checked by hand.
 - Lesson to promote: a type check was load-bearing, not defensive habit. `requireSpaceId` rejects a non-string rather than merely a falsy value, because `{ $ne: null }` reaching a Mongo query matches every document in the collection — a truthiness check would have passed it straight through. The same shape of bug does not exist in the SQL the earlier SQLite decision would have produced, so the reversal to MongoDB quietly changed what the guard had to do. A store is only as scoped as its weakest argument check.

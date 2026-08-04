@@ -1,8 +1,8 @@
 ---
-current_bead: tasks/beads/B014-space-scoped-store.md
+current_bead: tasks/beads/B015-connect-frontend-to-backend.md
 current_state: in_progress
 build_lane: Backend product definition
-active_feature_window: Space-scoped store
+active_feature_window: Frontend to backend
 primary_authority: tasks/prds/PRD-002-backend.md
 ---
 # PrecodeOS — Active Work File
@@ -24,33 +24,32 @@ primary_authority: tasks/prds/PRD-002-backend.md
 > Noticed is facts only, never directives or hidden backlog.
 
 Creator: Caron Ng
-Document version: v1.4.0
+Document version: v1.5.0
 Last updated: 2026-08-04
 
 ---
 
 ## Current Bead
 
-- `tasks/beads/B014-space-scoped-store.md`
+- `tasks/beads/B015-connect-frontend-to-backend.md`
 - State: `in_progress`
 - Build lane: `Backend product definition`
-- Active feature window: `Space-scoped store`
+- Active feature window: `Frontend to backend`
 
 ## Done When
 
-- A store module exists whose every data function takes a space id first, and which
-  **exports no way to reach daily-log data without one**.
-- Entries recorded in one space are invisible from another, at both read and write.
-- The space id used by any route comes from `request.spaceId`, set only by the
-  session hook from `B013`.
-- The cross-space attempt suite passes: id substitution, enumeration, session-token
-  reuse, and non-existent ids — each refused.
-- Denial responses are **byte-identical** for "not yours" and "does not exist".
-- Data survives a client reconnect and a server restart.
-- SKUs are normalised server-side by the `DATA-MODELS.md` rule — trim, upper-case,
-  then strip leading zeros if entirely digits — because the client is not trusted.
-- All checks below are run and recorded.
-- **No consolidation, export, or frontend change.** Those are bead 3.
+- A sign-in screen exists; the recorder is not reachable without a session.
+- Vite proxies `/api` to the backend in development, so the app is same-origin.
+- Entries are written to and read from the backend, not `localStorage`.
+- Consolidation, day rollover, and `.xlsx` export behave exactly as `PRD-001`
+  defines, now over server data.
+- The signed-in identity is visible on every screen state while signed in.
+- Signing out returns to the sign-in screen.
+- A failed request shows a plain message and **preserves the typed entry**.
+- **SKU normalisation is settled**: the rule exists in two places by necessity — the
+  backend cannot trust the client, and the frontend needs it for display — and a
+  contract test asserts the two agree, so they cannot drift silently.
+- All three checks below are run and recorded.
 
 ## Primary Authority File
 
@@ -58,31 +57,35 @@ Last updated: 2026-08-04
 
 ## Files In Play
 
+- `frontend/src/`
+- `frontend/tests/`
+- `frontend/index.html`
+- `frontend/vite.config.js`
 - `backend/src/`
 - `backend/tests/`
-- `backend/package.json`
-- `tasks/beads/B014-space-scoped-store.md`
+- `tasks/beads/B015-connect-frontend-to-backend.md`
 - `tasks/todo.md`
 
 ## Checks To Run
 
 - `bash scripts/record-check.sh -- bash scripts/validate-memory.sh`
+- `bash scripts/record-check.sh --cwd ../frontend -- npm test`
 - `bash scripts/record-check.sh --cwd ../backend -- npm test`
 
 ## Explicit Out-of-Scope
 
-- Any data path can be called without a space id.
-- A space id could come from the request body, query, headers, or path.
-- Denial responses differ between "not yours" and "does not exist".
-- The store exports a raw collection handle or an unscoped query helper.
-- Scope reaches consolidation, export, or the frontend.
-- A dependency beyond the approved three plus Vitest is needed.
-- A cross-space leak is found — **escalate rather than patching quietly.**
+- `PRD-001` behaviour changes rather than being preserved. Storage moves; behaviour
+  does not.
+- Offline support, retry queues, or optimistic writes appear — `BQ-7` ruled them out.
+- A second dependency is needed to talk to the backend. `fetch` is built in.
+- Isolation enforcement moves to the client in any form.
+- The two SKU normalisations are allowed to differ.
+- Scope reaches the network-cost measurement, which is bead 4.
 - Stop condition: pause and ask before crossing any stop condition above.
 
 ## Next Up
 
-- Begin `tasks/beads/B014-space-scoped-store.md` only within its Done When, Files In Play, and Stop If boundaries.
+- Begin `tasks/beads/B015-connect-frontend-to-backend.md` only within its Done When, Files In Play, and Stop If boundaries.
 - If the bead is too broad, split it before implementation.
 
 ## Open Questions
@@ -91,5 +94,5 @@ Last updated: 2026-08-04
 
 ## Noticed
 
-- Promoted from `tasks/beads/B013-backend-auth-boundary.md` to `tasks/beads/B014-space-scoped-store.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-04 17:35 UTC.
+- Promoted from `tasks/beads/B014-space-scoped-store.md` to `tasks/beads/B015-connect-frontend-to-backend.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-04 17:46 UTC.
 

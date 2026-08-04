@@ -73,6 +73,10 @@
       .actions { display: flex; align-items: center; gap: 0.6rem; margin: 0 0 1.1rem; }
       #export:disabled { opacity: 0.5; cursor: default; }
       #export-status { font-size: 0.875rem; color: var(--muted); }
+      #who { font-weight: 600; color: var(--ink); }
+      .linky { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font: inherit; text-decoration: underline; }
+      #signin-error { color: #a3231b; font-size: 0.875rem; min-height: 1.25rem; }
+      #passcode { width: 14rem; }
       @media (prefers-color-scheme: dark) {
         :root { --ink: #ececec; --muted: #a0a0a0; --line: #3a3a3a; --bg: #161616; --accent: #4c9c86; }
         input { background: #202020; }
@@ -81,11 +85,38 @@
     </style>
   </head>
   <body>
-    <main>
+    <main id="signin-screen">
+      <h1>Daily Inventory Recorder</h1>
+      <p class="day">Sign in to your inventory</p>
+      <!--
+        Autofill is suppressed deliberately. One shared product serves several
+        businesses, possibly from the same shop device, so a saved passcode belongs to
+        a different space than the one being signed into. Chrome fills the saved
+        passcode regardless of the username typed, and the shop sees only "did not
+        match" — which is true, and useless. Chrome ignores autocomplete="off" on
+        password fields, so the passcode uses "new-password", which it honours.
+      -->
+      <form id="signin-form" autocomplete="off" novalidate>
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="off" autofocus />
+        </div>
+        <div class="field">
+          <label for="passcode">Passcode</label>
+          <input id="passcode" name="passcode" type="password" autocomplete="new-password" />
+        </div>
+        <button type="submit">Sign in</button>
+      </form>
+      <p id="signin-error" role="alert"></p>
+    </main>
+
+    <main id="app-screen" hidden>
       <h1>Daily Inventory Recorder</h1>
       <p class="day">
-        Today &middot; <span id="day-label"></span>
+        <span id="who"></span>
+        &middot; Today <span id="day-label"></span>
         &middot; <span id="last-saved">Not saved yet</span>
+        &middot; <button type="button" id="signout" class="linky">Sign out</button>
       </p>
 
       <form id="entry-form" novalidate>
