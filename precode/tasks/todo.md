@@ -1,9 +1,9 @@
 ---
-current_bead: tasks/beads/B010-architecture-shaping-backend.md
+current_bead: tasks/beads/B013-backend-auth-boundary.md
 current_state: in_progress
 build_lane: Backend product definition
-active_feature_window: Backend architecture shaping
-primary_authority: tasks/reference/ARCHITECTURE-SHAPING-PROTOCOL.md
+active_feature_window: Backend auth boundary
+primary_authority: tasks/prds/PRD-002-backend.md
 ---
 # PrecodeOS — Active Work File
 <!-- ANCHOR: active-work -->
@@ -24,64 +24,68 @@ primary_authority: tasks/reference/ARCHITECTURE-SHAPING-PROTOCOL.md
 > Noticed is facts only, never directives or hidden backlog.
 
 Creator: Caron Ng
-Document version: v1.0.0
+Document version: v1.3.0
 Last updated: 2026-08-04
 
 ---
 
 ## Current Bead
 
-- `tasks/beads/B010-architecture-shaping-backend.md`
+- `tasks/beads/B013-backend-auth-boundary.md`
 - State: `in_progress`
 - Build lane: `Backend product definition`
-- Active feature window: `Backend architecture shaping`
+- Active feature window: `Backend auth boundary`
 
 ## Done When
 
-- The six questions in `PRD-002`'s Architecture Impact section are answered:
-  backend framework and language · where isolation is enforced · data store ·
-  session mechanism · how `frontend/` and `backend/` connect in development and in
-  production · what runs locally versus deployed.
-- An Architecture Brief exists in `PRD-002`, in the format
-  `ARCHITECTURE-SHAPING-PROTOCOL.md` defines, marked `evidence_only`.
-- Every decision it records also appears in `DECISIONS.md`.
-- Owner-file impacts are named, not made — `ARCHITECTURE.md`, `API.md`,
-  `DATA-MODELS.md`, `SECURITY.md`, `PROJECT-CONTEXT.md` are updated in a later bead.
-- The `SpaceScopedStore` question is settled explicitly: whether isolation is
-  structural or depends on remembering to scope each call site.
-- Both checks below are run and recorded.
+- `backend/` exists as a Node project with Fastify, the `mongodb` driver, `bcrypt`,
+  and Vitest as its test runner.
+- A login can be created with a username and passcode, stored with a bcrypt hash.
+- Signing in with correct credentials returns a session; wrong credentials do not.
+- The session is a **signed HTTP-only cookie**, with a server-side session record
+  carrying the space id.
+- A protected route is refused without a valid session, **before any handler runs**.
+- Signing out invalidates the session server-side; replaying it afterwards fails.
+- An expired session is refused.
+- The passcode never appears in the database, in a response, or in a log.
+- The Atlas connection string is read from the environment and **never committed**.
+- All checks below are run and recorded.
+- **No daily-log route, and no scoped store.** Those are bead 2.
 
 ## Primary Authority File
 
-- `tasks/reference/ARCHITECTURE-SHAPING-PROTOCOL.md`
+- `tasks/prds/PRD-002-backend.md`
 
 ## Files In Play
 
-- `tasks/prds/PRD-002-backend.md`
-- `DECISIONS.md`
-- `tasks/beads/B010-architecture-shaping-backend.md`
+- `backend/package.json`
+- `backend/package-lock.json`
+- `backend/src/`
+- `backend/tests/`
+- `tasks/beads/B013-backend-auth-boundary.md`
 - `tasks/todo.md`
 
 ## Checks To Run
 
 - `bash scripts/record-check.sh -- bash scripts/validate-memory.sh`
-- `bash scripts/record-check.sh -- python3 scripts/file-inventory.py --check`
+- `bash scripts/record-check.sh --cwd ../backend -- npm test`
 
 ## Explicit Out-of-Scope
 
-- A decision would be recorded that the builder has not made.
-- `backend/` is created, or any code or dependency is added.
-- Deployment is being decided rather than deferred.
-- Isolation would rest on remembering to scope each call site rather than on
-  structure — that is the `SEC01` risk and it should be surfaced, not accepted
-  quietly.
-- Any `PRD-002` requirement would change. That is a PRD amendment, not architecture.
-- Scope reaches decomposition.
+- Authorization would be decided anywhere but server-side, or after a handler runs.
+- The connection string would be written to any file in the repository.
+- A passcode would be stored, returned, or logged in recoverable form.
+- A reset, recovery, or admin path starts to appear — BQ-5 ruled them out.
+- Scope reaches daily-log data or the scoped store. That is bead 2, and it must land
+  whole.
+- A dependency beyond Fastify, `mongodb`, `bcrypt` and the already-approved Vitest is
+  needed.
+- Atlas is unreachable — raise an unblocker rather than working around it.
 - Stop condition: pause and ask before crossing any stop condition above.
 
 ## Next Up
 
-- Begin `tasks/beads/B010-architecture-shaping-backend.md` only within its Done When, Files In Play, and Stop If boundaries.
+- Begin `tasks/beads/B013-backend-auth-boundary.md` only within its Done When, Files In Play, and Stop If boundaries.
 - If the bead is too broad, split it before implementation.
 
 ## Open Questions
@@ -90,5 +94,5 @@ Last updated: 2026-08-04
 
 ## Noticed
 
-- Promoted from `tasks/beads/B009-shape-backend-prd.md` to `tasks/beads/B010-architecture-shaping-backend.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-04 16:58 UTC.
+- Promoted from `tasks/beads/B012-adapt-owner-files-for-backend.md` to `tasks/beads/B013-backend-auth-boundary.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-04 17:25 UTC.
 

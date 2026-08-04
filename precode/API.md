@@ -8,10 +8,10 @@
 
 Creator: Caron Ng
 Adapted from the PrecodeOS `API.md` template (Apache-2.0, © 2026 Dan Sears / Recode)
-Document version: v0.2.0
-Last updated: 2026-07-31
+Document version: v0.3.0
+Last updated: 2026-08-04
 
-## There Is No API In v1
+## There Is No API In v1 — And v2 Adds One
 
 Snap Camp v1 has **no server boundary, no API routes, no webhooks, and no request
 handlers**. This is a deliberate decision, not an omission or unfinished work.
@@ -26,28 +26,44 @@ It follows from decisions already recorded in `DECISIONS.md`:
 - `backend/` exists as a directory convention only and stays unbuilt until an
   approved backend bead (OQ-4).
 
-An agent finding this file nearly empty should read that as "there is nothing here
-by design," not "this needs filling in."
+**That remains true of v1 as built.** `PRD-002`, approved 2026-08-04, introduces a
+server boundary for the first time. The conventions below are **decided but not
+built** — `backend/` does not exist.
 
-## What Would Change This
+## v2 API Conventions — Decided, Not Built
 
-An API boundary becomes relevant only if one of these is reopened:
+From the `PRD-002` Architecture Brief. Node with **Fastify**, same origin as the
+frontend in both environments.
 
-| Trigger | Consequence |
-|---|---|
-| Multi-device use | Reopens OQ-11; `localStorage` becomes insufficient |
-| A database, including the MongoDB forward-looking note | Reopens OQ-5 and the `backend/` decision |
-| Accounts or authentication | Reopens `SEC02` |
-| Any external service or integration | Reopens `SEC03` |
+### The Rule That Comes Before Every Other
 
-Each requires a **PRD amendment or a new PRD** before any route, handler, or
-endpoint is written. None may be introduced from inside an implementation bead.
+**Authorization is decided server-side, before any handler runs** (`PRD-002-SEC02`).
+Session middleware rejects unauthenticated requests, and the **space id comes from
+the session** — never from the request body, query string, headers, or path.
 
-The MongoDB note in `DECISIONS.md` is forward-looking context only. It is not
-approval to design a schema, activate `backend/`, or add an API.
+A route handler never receives a space id it could have been lied to about.
 
-## Conventions For A Future API
+### Route Conventions
 
-Not yet decided, and deliberately not pre-specified. When a backend PRD is shaped
-and approved, route conventions, handler patterns, validation placement, and error
-shapes belong in this file at that point.
+- Routes are grouped by resource, not by page.
+- Every data route reads and writes through the space-scoped store. There is no
+  unscoped data function to call — see `ARCHITECTURE.md`.
+- Request bodies are schema-validated at the boundary. Fastify was chosen partly for
+  this.
+- The frontend and backend share an origin, so requests are same-origin and carry the
+  session cookie automatically. No CORS configuration exists or should be added.
+
+### Error Shapes
+
+**Denial responses must be identical for "not yours" and "does not exist"**
+(`PRD-002-SEC01`). If they differ, the difference is itself an enumeration oracle and
+the isolation guarantee leaks through the error channel.
+
+Error messages must never contain another space's data, and neither must server logs.
+
+### What Is Still Undecided
+
+Route paths, handler file layout, status-code conventions beyond the rule above, and
+pagination. These are left to the implementing agent, per the Architecture Brief.
+
+Deployment is deliberately undecided and comes after backend beads are built.

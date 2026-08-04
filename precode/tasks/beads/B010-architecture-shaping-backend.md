@@ -1,6 +1,6 @@
 ---
 bead_id: B010
-status: in_progress
+status: done
 execution_mode: builder
 bead_kind: planning
 primary_authority: tasks/reference/ARCHITECTURE-SHAPING-PROTOCOL.md
@@ -39,7 +39,7 @@ Last updated: 2026-08-04
 ## State
 
 - ID: `B010`
-- Status: `in_progress`
+- Status: `done`
 - Execution mode: `builder`
 
 ## Primary Authority
@@ -144,8 +144,8 @@ Run from `precode/`.
 - Result: latest recorded command status is pass (exit 0)
 - Manual verification: Who checked: Caron Ng (builder) approved all six architecture answers on 2026-08-04; Claude (agent) recorded them and verified the structural result. What was checked: the six questions named in `PRD-002`'s Architecture Impact section are each answered; an Architecture Brief in the `ARCHITECTURE-SHAPING-PROTOCOL.md` format exists in `PRD-002` marked `evidence_only`; all six decisions also appear in `DECISIONS.md`; owner-file impacts are named rather than made; and the `SpaceScopedStore` question is settled explicitly as structural isolation. Environment: local macOS checkout, run from `precode/`. Result: pass. Remaining uncertainty: package selection for SQLite bindings and password hashing is deferred to implementation time and unverified here; `SEC01` remains a negative claim that no suite can fully close; deployment is deliberately unanswered.
 - Files changed: 7 changed path(s) at last evidence update
-- Next bead: none named yet — decomposition is the next step and is out of this bead's scope
-- Review decision: pending human acceptance
+- Next bead: `tasks/beads/B011-decompose-backend-prd.md`
+- Review decision: accepted by Caron Ng on 2026-08-04, having approved all six architecture answers. Both checks pass and are recorded; the Architecture Brief is in `PRD-002` marked `evidence_only` and every decision also appears in `DECISIONS.md`. Accepted with package selection deferred to implementation time and `SEC01` acknowledged as a negative claim no suite can fully close.
 - Drift observed: none. Changed files were `tasks/prds/PRD-002-backend.md`, `DECISIONS.md`, this bead file and `tasks/todo.md` — all declared in `files_in_play`. `DECISIONS.md` was declared in scope for this bead deliberately, unlike earlier beads where recording decisions had to be logged as boundary crossing. No owner file was edited, no code written, no dependency added, `backend/` not created. Checked by hand.
 - Lesson to promote: the architecture question worth arguing about was not the framework or the database — both are reversible in an afternoon — but where isolation lives. Structural isolation, where no unscoped data function exists to call, versus per-endpoint checks that depend on nobody forgetting, is the difference between `SEC01` being guaranteed and being remembered. Naming that one question as the one to push back on, and treating the other five as defaults, kept the shaping short without making it shallow.
 - Follow-up bead needed: yes, two. Decomposition of `PRD-002` against the fixed stack; and a later bead to update `ARCHITECTURE.md`, `API.md`, `DATA-MODELS.md`, `SECURITY.md` and `PROJECT-CONTEXT.md`, whose impacts this brief names but does not make.

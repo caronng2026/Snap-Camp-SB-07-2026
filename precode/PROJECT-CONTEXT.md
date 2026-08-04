@@ -8,8 +8,8 @@
 
 Creator: Caron Ng
 Adapted from the PrecodeOS `PROJECT-CONTEXT.md` template (Apache-2.0, © 2026 Dan Sears / Recode)
-Document version: v0.3.0
-Last updated: 2026-07-27
+Document version: v0.4.0
+Last updated: 2026-08-04
 
 ## Repository Topology
 
@@ -49,11 +49,12 @@ Use `PRODUCT.md` for builder-facing product direction: product promise, users an
 
 ## Project Shape
 
-- Product summary: Snap Camp builds the **Daily Inventory Recorder** — a fast daily log for small specialty businesses that records item SKUs and quantities during the working day, consolidates repeated SKUs automatically, and produces an Excel-ready daily summary in one action, replacing manual end-of-day spreadsheet consolidation. See `PRODUCT.md`.
-- Stack: browser-based, mobile-responsive web app in `frontend/` — Vite build tooling, vanilla JavaScript modules, Vitest for tests, browser `localStorage` for persistence, one spreadsheet-writing dependency for the `.xlsx` export. No UI framework, no server, no database. Node and npm are development prerequisites. Recorded as OQ-2, OQ-3, OQ-5, and OQ-10 in `DECISIONS.md`.
-- Primary users or roles: the owner or assistant at the anchor partner (needlepoint retail) recording inventory during the working day; witness A (lock manufacturing) and witness B (coffee-paper logistics) confirming the design generalizes; Caron Ng as builder and approver; AI coding agents operating inside bead boundaries.
-- App directory: `frontend/`, a sibling of `precode/` at the repository root. `backend/` is a directory convention only and stays unbuilt until an approved backend bead (OQ-4). Neither exists yet. The installed Precode root is `precode/`.
-- Deployment target: none configured. v1 is run locally for the "watch them use it" test with the anchor partner. Hosting is not a v1 decision.
+- Product summary: Snap Camp builds the **Daily Inventory Recorder** — a fast daily log for small specialty businesses that records item SKUs and quantities during the working day, consolidates repeated SKUs automatically, and produces an Excel-ready daily summary in one action. Delivered as **one shared deployment serving multiple businesses**, each signing in to its own isolated data space. See `PRODUCT.md`.
+- Stack, v1 — **built**: browser-based, mobile-responsive web app in `frontend/`. Vite, vanilla JavaScript modules, Vitest, jsdom, browser `localStorage`, and `write-excel-file` for the `.xlsx` export. No UI framework.
+- Stack, v2 — **decided, not built**: Node with **Fastify** in `backend/`, **MongoDB Atlas** as the data store via the official `mongodb` driver, `bcrypt` for password hashing, signed HTTP-only cookies with a server-side session table, same origin as the frontend in both environments. Recorded 2026-08-04 under `PRD-002`; MongoDB reversed the earlier SQLite decision the same day. The **Atlas connection string is a secret**, and the backend does not run without connectivity.
+- Primary users or roles: the owner or assistant at a small specialty business recording inventory; Caron Ng as builder and approver; AI coding agents operating inside bead boundaries.
+- App directories: `frontend/` exists and is built. **`backend/` does not exist** and must not be created without approval. Both are siblings of `precode/` at the repository root (OQ-4).
+- Deployment target: **none, deliberately.** `PRD-002` places deployment after backend beads exist and are built. Node and npm are development prerequisites.
 
 ## Operating Principles
 
@@ -97,24 +98,27 @@ Use `PRODUCT.md` for builder-facing product direction: product promise, users an
 
 ## Integration Boundaries
 
-Every integration is deliberately closed in v1. See `SECURITY.md` for the sensitive-surface table and `API.md` for why there is no server boundary.
+Two columns, because v1 is built and v2 is decided but not. See `SECURITY.md` for the
+sensitive-surface detail and `API.md` for the server boundary.
 
-- Auth: none. No accounts, roles, or permissions (`PRD-001-SEC02`).
-- Database: none. Persistence is browser `localStorage` (OQ-5). The MongoDB note in `DECISIONS.md` is forward-looking context only, not a v1 requirement.
-- Payments: none.
-- Email: none.
-- Hosting: none configured for the app. The repository is hosted on GitHub, private.
-- Analytics: none. No telemetry (`PRD-001-SEC03`).
-- External APIs: none. Zero outbound network requests, verified by an integration check.
-- Repository host: GitHub, private.
-- CI provider: none installed. A workflow under `precode/.github/` would not run, because GitHub Actions reads only the repository root.
-- Issue tracker: none configured.
-- Deployment provider: none.
-- Monitoring or error tracking: none.
-- Safe health URLs for read-only uptime checks: none — there is no deployed surface.
-- Manual dashboards or setup surfaces: none.
+| Boundary | v1, built | v2, decided not built |
+|---|---|---|
+| Auth | none | username and passcode; no reset, recovery, or admin |
+| Database | none — browser `localStorage` | MongoDB via the official driver; connection string is a secret |
+| Payments | none | none |
+| Email | none | none |
+| Hosting | none configured | app hosting undecided; **data hosted on MongoDB Atlas** |
+| Analytics / telemetry | none | none |
+| External APIs | none — zero outbound requests | **MongoDB Atlas**, reached over the internet. A third-party dependency for storage and availability |
+| Repository host | GitHub, private | unchanged |
+| CI | none installed | none |
+| Issue tracker | none | none |
+| Monitoring | none | none |
+| Manual dashboards | none | none |
 
-If an integration boundary changes, record the product or technical decision in `DECISIONS.md` and update the owning reference file. Reopening auth, network, or database requires a PRD amendment.
+Reopening a boundary requires a recorded decision in `DECISIONS.md`. `SEC02` and
+`SEC03` were reopened on 2026-08-03 for `PRD-002` scope only and remain in force for
+v1.
 
 ## Project Extensions
 
@@ -137,16 +141,25 @@ If audits are enabled later, they must remain read-only and must not mutate GitH
 
 ## Project-Specific Checks
 
-Control-layer and owner-file beads use:
+Control-layer and owner-file beads:
 
 - `bash scripts/record-check.sh -- bash scripts/validate-memory.sh`
 - `bash scripts/record-check.sh -- python3 scripts/file-inventory.py --check`
 
-Application beads in `frontend/` add:
+Frontend beads add:
 
 - `bash scripts/record-check.sh --cwd ../frontend -- npm test`
 
-Run every check from `precode/`. The `--cwd` flag targets the sibling app directory. An active bead may narrow or expand this list; the bead's own `checks` field wins.
+Backend beads, once `backend/` exists, add:
+
+- `bash scripts/record-check.sh --cwd ../backend -- npm test`
+
+A bead touching isolation must additionally run the `PRD-002-SEC01` cross-space
+attempt suite and record it. A green suite bounds the attempts that were thought of;
+it is not proof that nothing leaks.
+
+Run every check from `precode/`. The `--cwd` flag targets the sibling directory. An
+active bead's own `checks` field wins over this list.
 
 ## Testing And Evidence
 

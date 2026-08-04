@@ -8,8 +8,8 @@
 
 Creator: Caron Ng
 Adapted from the PrecodeOS `DATA-MODELS.md` template (Apache-2.0, © 2026 Dan Sears / Recode)
-Document version: v0.2.0
-Last updated: 2026-07-31
+Document version: v0.3.0
+Last updated: 2026-08-04
 
 ## Source Of These Definitions
 
@@ -100,3 +100,64 @@ No product transformations, kits or bundles, customer or order records, pricing,
 valuation, purchase orders, multi-location, or multi-user. See `FEATURES.md` for the
 full later-scope list. No database — the MongoDB note in `DECISIONS.md` is
 forward-looking context only and is not approval to design a schema.
+
+## v2 Models — Decided, Not Built
+
+From the `PRD-002` Architecture Brief, 2026-08-04. Stored in **MongoDB** via the
+official driver. `backend/` does not exist yet; these are the shapes it will hold.
+
+Collection and field naming is left to the implementing agent. What is fixed is that
+`space_id` is present on every daily-log document and is the only thing that scopes a
+query.
+
+### `Login`
+
+| Field | Type | Meaning | Rules |
+|---|---|---|---|
+| `username` | string | What the business types to sign in | Unique. No email, no personal data (`PRD-002-SEC02` of v1 lineage) |
+| `passcode_hash` | string | The verifier | **Never the passcode.** Never logged, never returned, never recoverable (`PRD-002-SEC03`) |
+| `space_id` | string | The one data space this login opens | Exactly one. A login maps to one space and one space only |
+
+**There is nothing above a `Login` and nothing inside it.** No profile, no role, no
+group, no owner, no recovery address. That is the BQ-5 narrowing, and adding any of
+them needs a new decision, not a bead-level assumption.
+
+### `Space`
+
+| Field | Type | Meaning | Rules |
+|---|---|---|---|
+| `space_id` | string | The isolation boundary | Every daily-log row belongs to exactly one. Never derived from user input |
+
+A space is not a business, a tenant, or an organisation. Those words imply grouping
+that does not exist here.
+
+### `Session`
+
+| Field | Type | Meaning | Rules |
+|---|---|---|---|
+| `session_id` | string | Identifies the signed-in period | Held in a signed HTTP-only cookie |
+| `space_id` | string | Which space this session may reach | **The only source of a space id for any request** |
+| `expires_at` | timestamp | When it stops working | Expiry and sign-out both invalidate **server-side** (`PRD-002-SEC04`) |
+
+### How `DailyLog` Is Scoped
+
+`Entry` and `DailyLog` keep the shapes defined above for v1. What changes is where
+they live and how they are reached:
+
+```text
+space_id + local date key  ->  the entries for that day, for that space
+```
+
+- The `space_id` comes from the `Session`, never from the request.
+- Every read and write passes through the space-scoped store. **No function exists
+  that omits the space id** — see `ARCHITECTURE.md`.
+- SKU normalisation is unchanged: trim, upper-case, then strip leading zeros if the
+  result is entirely digits. A SKU is still always a string.
+- Consolidation stays a derived read-time transform. Nothing about isolation changes
+  that.
+
+### What Is Not Modelled
+
+No user, role, permission, team, organisation, audit log, or recovery token. Each was
+ruled out by decision, not deferred.
+

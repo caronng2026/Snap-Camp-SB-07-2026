@@ -457,8 +457,8 @@ Every surface v1 closed reopens here. This is why `risk_level` is `high`.
 - **User or private data: triggered.** Inventory data leaves the user's machine for the first time.
 - **Data model or migration: triggered.** Space, login, session, and the scoping of `DailyLog`. No migration from v1 (`BQ-6`).
 - **API, webhook, background job: triggered.** A server boundary now exists where `API.md` records none.
-- **External service: not triggered.** No third party. The app calls only its own backend.
-- **Dependency, secret, environment: triggered.** Framework, data store, credential hashing, a session secret.
+- **External service: triggered.** The backend depends on **MongoDB Atlas**, reached over the internet. Inventory data is stored by a third party, and availability depends on Atlas and on connectivity.
+- **Dependency, secret, environment: triggered.** Framework, data store, credential hashing, a session secret, **and a MongoDB connection string**.
 - **Multi-step workflow or state: triggered.** Signed-out → signed-in → recording → signed-out.
 - **Multi-system coordination: triggered.** `frontend/` and `backend/` must move together.
 
@@ -468,7 +468,7 @@ Seven of eight. `PRD-001`'s brief triggered four, all implementation-side.
 
 - **Framework:** Node with **Fastify**. One language across both halves, one toolchain. Schema validation is first-class, which matters when every request carries values that must not be trusted.
 - **Isolation boundary:** a **space-scoped data-access layer**. Every data function takes a space id as its first argument, and **no unscoped alternative exists to call**. Isolation is structural, not a rule to remember. Session middleware rejects before any handler runs, and the space id comes from the session — never from the request body, query, or headers.
-- **Data store:** **SQLite**, one file, no server process, trivially backed up. At three businesses recording roughly 200 entries a day this is nowhere near a constraint. **This supersedes the MongoDB forward-looking note**, which was context and never a requirement.
+- **Data store:** **MongoDB**, via the official `mongodb` driver. Reversed from SQLite on 2026-08-04 once the builder confirmed an instance is already set up, which removed the operational argument for SQLite. **The connection string is a secret** and must never enter the repository. The store is a network dependency: backend startup and tests depend on reachability.
 - **Sessions:** signed **HTTP-only cookie** with a **server-side session table**. `SEC04` requires sign-out and expiry to invalidate server-side, which a stateless token cannot do without a revocation list — and that is a session table with extra steps.
 - **Frontend/backend connection:** **same origin in both environments.** Vite dev proxy in development; the backend serves the built frontend in production. No CORS, no preflight, no `SameSite` puzzles, one process to run.
 - **Manual setup:** none. Local development only.
@@ -490,7 +490,7 @@ Named here, made in a later bead — this bead does not edit them.
 - **Approval required before:** each package once selected, with licence and size reported · creating `backend/` · any dependency beyond the ones named · any deployment · activating any bead.
 - **Stop if:** a data-access path exists that can be called without a space id · authorization is decided anywhere but server-side · a recovery, reset, or admin path appears · real partner data reaches a fixture or a running system.
 - **Return to PRD if:** multi-device, offline, or per-user roles become necessary — each was closed by a recorded answer.
-- **Raise an unblocker if:** the chosen SQLite or hashing package cannot be verified as maintained and permissively licensed.
+- **Raise an unblocker if:** Atlas is unreachable from the development machine, or an approved package turns out to be unmaintained at the time of use.
 
 ### Verification Evidence Expected
 
@@ -505,11 +505,11 @@ Named here, made in a later bead — this bead does not edit them.
 - **Likely slice type:** vertical, through the auth boundary first.
 - **Run contract needed:** yes for the first bead — it introduces credentials and a session secret.
 - **Candidate first bead:** scaffold `backend/` with Fastify, the session middleware, and the scoped store, proving a request without a session is refused. Establishes `SEC02` structurally rather than retrofitting it.
-- **Unresolved blockers:** package selection for SQLite bindings and password hashing; both verified at implementation time, not assumed here.
+- **Unresolved blockers:** none outstanding. Fastify 5.11.2 (MIT), `mongodb` 7.5.0 (Apache-2.0) and a hashing library were reported on 2026-08-04 and await approval before use.
 
 ### Do Not Decide Yet
 
-- **Repo facts the agent must inspect first:** current Node version; whether the chosen SQLite and hashing packages are present, permissively licensed, and maintained at the time of use.
+- **Repo facts the agent must inspect first:** current Node version; whether the approved packages are present and still maintained; and whether the MongoDB instance is reachable, since nothing runs without it.
 - **Left to the agent:** file and module names under `backend/`, route paths, table names, test layout, and the internal shape of the session record — provided the scoped-store boundary and server-side authorization hold.
 
 ## Module / Interface Candidates
@@ -561,22 +561,100 @@ structure.
 
 ## Bead Proposals
 
-**Provisional and pre-architecture.** Decomposition runs properly after Architecture
-Shaping, when `files_in_play` can be bound to real paths. These exist so the PRD can
-be judged on whether it decomposes sensibly, per approval criterion 14.
+Decomposition run 2026-08-04 under `B011`, against the architecture fixed by `B010`.
+Paths bind to real locations. **Proposals only** — no bead file exists and none is
+activated.
 
-| Proposed bead | Requirements | Done when |
-|---|---|---|
-| `B###-backend-scaffold-and-auth-boundary` | `FR01`, `FR04`, `SEC02`, `SEC03`, `SEC04` | A login signs in, gets a session, and signs out; every protected request is refused without one |
-| `B###-space-scoped-storage` | `FR02`, `FR03`, `FR06`, `SEC01` | Entries read and write through a store that cannot be called without a space id; the cross-space attempt suite is refused |
-| `B###-connect-frontend-to-backend` | `FR05`, `UX01`, `UX02`, `UX03`, `NFR01` | The v1 recording experience works against the backend, with the identity shown and no silent loss on failure |
-| `B###-measure-network-cost` | `NFR01`, `NFR02` | Round-trip save and 200-entry render measured; bars set from the measurement |
+| # | Proposed bead | Requirements | Delegation | Test | Review | Complexity / depth / autonomy |
+|---|---|---|---|---|---|---|
+| 1 | `B###-backend-auth-boundary` | `FR01` `FR04` `SEC02` `SEC03` `SEC04` | `human_in_loop` | `failing_first` | `fresh_context_required` | standard / brief / supervised |
+| 2 | `B###-space-scoped-store` | `FR02` `FR03` `FR06` `SEC01` | `human_in_loop` | `failing_first` | `fresh_context_required` | standard / brief / supervised |
+| 3 | `B###-connect-frontend-to-backend` | `FR05` `UX01` `UX02` `UX03` | `human_in_loop` | `failing_first` | `fresh_context_recommended` | standard / brief / supervised |
+| 4 | `B###-measure-network-cost` | `NFR01` `NFR02` | `human_in_loop` | `characterization` | `same_session_ok` | narrow / brief / supervised |
 
-**Smallest first bead:** `backend-scaffold-and-auth-boundary`. It is the vertical
-slice that makes everything after it testable, and it is where `SEC02` — server-side
-enforcement — is established rather than retrofitted.
+### Bead Detail
 
-`SEC05` is cross-cutting: every bead checks fixtures for partner identities.
+**1. `B###-backend-auth-boundary`**
+Outcome: a login signs in, receives a session, and signs out; every protected route
+is refused without a valid session.
+Files: `backend/package.json`, `backend/src/`, `backend/tests/`.
+Depends on: nothing. Requires approval to create `backend/` and to add Fastify, the
+`mongodb` driver, and a hashing package — reported 2026-08-04, awaiting approval.
+Checks: `validate-memory.sh`; `--cwd ../backend -- npm test`.
+Stop if: authorization is decided anywhere but server-side · a reset, recovery, or
+admin path appears · credentials are stored recoverably · scope reaches daily-log
+data.
+*Establishes `SEC02` structurally rather than retrofitting it. `fresh_context_required`
+because it is the security boundary everything else assumes.*
+
+**2. `B###-space-scoped-store`**
+Outcome: daily-log data is read and written only through a store that cannot be
+called without a space id, and the cross-space attempt suite is refused.
+Files: `backend/src/` store and routes, `backend/tests/`.
+Depends on: bead 1.
+Checks: as above, plus the `SEC01` attempt suite — id substitution, enumeration,
+token reuse, non-existent ids — with identical denials for "not yours" and "does not
+exist"; and a test asserting no unscoped data function is exported.
+Stop if: any data path can be called without a space id · denial responses differ ·
+the space id can come from anywhere but the session.
+*Must land whole. Splitting it would leave `SEC01` unprovable across several beads,
+which is a stop condition of this decomposition.*
+
+**3. `B###-connect-frontend-to-backend`**
+Outcome: the v1 recording experience works against the backend — sign in, record,
+consolidate, roll over, export — with the signed-in identity always visible and no
+silent loss on a failed request.
+Files: `frontend/src/`, `frontend/index.html`, `frontend/tests/`, `frontend/vite.config.js`
+(dev proxy), `backend/src/` static serving.
+Depends on: beads 1 and 2.
+Checks: the `PRD-001` suite passing against server-backed storage; identity visible;
+a simulated failed write preserves the typed entry.
+Stop if: `PRD-001` behaviour changes rather than being preserved · offline or retry
+queues appear · a second dependency is needed to talk to the backend.
+
+**4. `B###-measure-network-cost`** — `bead_kind: review`
+Outcome: round-trip save time and 200-entry render time measured, with regression
+bars set from the measurement.
+Files: `frontend/tests/`, `backend/tests/`.
+Depends on: bead 3.
+Stop if: the measurement is worse than hoped and optimisation starts — report it
+instead · a measured figure is treated as a guarantee about shop hardware.
+*Note: `NFR01` has no local baseline, because the `PRD-001-UX01` paper comparison was
+deliberately not measured. This bead measures the network cost; it cannot recover
+what the local figure would have been.*
+
+### Requirement Coverage
+
+All 16 requirements map to a bead. `SEC05` is cross-cutting — every bead checks
+fixtures and logs for partner identities.
+
+| Bead | Requirements |
+|---|---|
+| 1 auth boundary | `FR01` `FR04` `SEC02` `SEC03` `SEC04` |
+| 2 scoped store | `FR02` `FR03` `FR06` `SEC01` |
+| 3 connect frontend | `FR05` `UX01` `UX02` `UX03` |
+| 4 measure | `NFR01` `NFR02` |
+| all | `SEC05` |
+
+### Smallest First Bead
+
+**`B###-backend-auth-boundary`.** It is the smallest slice with an observable
+outcome — sign in, get a session, sign out, and be refused without one — and it is
+where server-side authorization is established rather than added later.
+
+It is deliberately **not** the smaller "scaffold `backend/` and serve a health
+route": that has no observable outcome and would be scaffolding for its own sake,
+which the Decomposition Protocol warns against.
+
+Bead 2 could in principle come first, but a scoped store with no session has nothing
+to scope *to* — the space id comes from the session by decision.
+
+### Before Any Of These Can Be Created
+
+- Approval to create `backend/`.
+- Package approval: Fastify 5.11.2, `mongodb` 7.5.0, and a hashing library —
+  reported 2026-08-04 with licence, maintenance state and size.
+- `B011` accepted and a transition approved.
 
 ## Compilation Notes
 
