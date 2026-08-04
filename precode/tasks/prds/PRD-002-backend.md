@@ -9,10 +9,10 @@ related_prds:
   - PRD-001
 ---
 
-# PRD-002 — Backend (Skeleton)
+# PRD-002 — Isolated Logins With Server-Side Storage
 <!-- ANCHOR: prd-002-backend -->
 
-> AUTHORITY: Product definition for a Snap Camp backend, once a problem for it exists.
+> AUTHORITY: Product definition for isolated logins and server-side storage in Snap Camp.
 > NOT_AUTHORITY: Active memory, task selection, stack choice, architecture, schema design, hosting, implementation status, or approval to code.
 > LOAD_WHEN: Shaping, reviewing, or approving the backend product definition.
 > CLASS: reference
@@ -24,19 +24,19 @@ Last updated: 2026-08-03
 ## State
 
 - ID: `PRD-002`
-- Status: `draft` — **skeleton only**
+- Status: `draft`
 - Owner: `user`
 - Risk level: `high`
 - Last updated: `2026-08-03`
 
-**This is scaffolding, not a product definition.** It exists so the backend
-conversation has somewhere to land. It has **no problem statement**, and one has
-deliberately not been written: no user problem, painful moment, or workaround has
-been captured for a backend. Writing one from the available material would mean
-inventing it.
+**A problem statement now exists**, following confirmation on 2026-08-03 that Snap
+Camp is deployed as one shared product serving multiple businesses. That answered
+`BQ-1`.
 
-This PRD cannot be approved, shaped further, or decomposed until `Open Questions`
-are answered. `PRD-001` and v1 are unaffected by this file.
+**This PRD is still a draft and is far from approvable.** It has no requirements, no
+acceptance oracles, and no architecture. Several open questions remain, and the
+scope is materially larger than all of v1 combined. `PRD-001` and v1 are unaffected
+by this file.
 
 ## Feature Link
 
@@ -71,9 +71,18 @@ Conviction Packet behind it. This has one sentence.
 
 ## Domain Language
 
-No new terms. Existing terms carry over from `PRD-001` unchanged: `Entry`,
-`DailyLog`, `Consolidation`, `DailySummary`, `SKU`. A backend may introduce terms
-such as account, device, or sync, but none should be defined before the problem is.
+| Term | Status | Plain-English meaning | Avoid |
+|---|---|---|---|
+| Login | `introduced` | A username and passcode. The unit of isolation | account, user account — both imply management this product does not have |
+| Data space | `introduced` | Everything belonging to one login: its daily logs, entries and exports | tenant, workspace, organisation — all imply structure above the login, which does not exist |
+| Session | `introduced` | The period between signing in and signing out | — |
+
+`Entry`, `DailyLog`, `Consolidation`, `DailySummary` and `SKU` carry over from
+`PRD-001` unchanged.
+
+**"Tenant" and "business" are deliberately not domain terms here.** A login is not a
+business — one business could hold several logins, or none. Using either word would
+imply grouping that BQ-5 ruled out.
 
 ## PRFAQ-Lite
 
@@ -86,25 +95,52 @@ such as account, device, or sync, but none should be defined before the problem 
 
 ## Problem
 
-**Deliberately left open.**
+Snap Camp is deployed as one shared product serving multiple small businesses
+(decided 2026-08-03), but it has no way to keep one user's inventory separate from
+another's. Until it does, the product can serve exactly one business.
 
-No user problem has been captured for a backend. `PRD-001` closed the three
-candidates a backend would normally address, each as a recorded decision with a
-reason — see `Non-Goals`.
+### Why v1 does not already solve this
 
-The only input is a stated technology preference. Per
-`tasks/templates/PRODUCT-IDEATION-WORKBOOK.md`, solution-first framing is a failure
-mode to challenge, not a starting point to build on.
+v1's isolation is not a feature — it is a side effect of having no deployment at
+all. Data lives in each user's own browser (`OQ-5`), on a single confirmed device
+(`OQ-11`), with zero network requests (`SEC03`). One user cannot reach another's data
+because there is no path between them.
 
-This section is filled in only from evidence: a real user, a real moment, and what
-they do today instead.
+A shared deployment removes that property. Isolation stops being free and becomes
+something that must be built, tested, and kept correct.
+
+### The shape of the answer
+
+A **login is the isolation boundary** (BQ-5, 2026-08-03): a username and passcode
+grant access to exactly one data space. Nothing sits above it and nothing is managed
+inside it — no profiles, no roles, no admin, no recovery.
+
+That is a deliberately small mechanism. It removes account management from scope
+entirely, but it does **not** shrink the isolation problem: whether the boundary is
+called a business or a login, every request still has to be checked server-side.
+
+### What makes this different from ordinary auth work
+
+The failure modes are not symmetrical. An authentication bug locks someone out and
+is obvious within minutes. **An isolation bug silently shows one shop another shop's
+inventory** — and the recorded design partners are small specialty businesses who
+may be competitors. It can run undetected for a long time, and the damage is not
+recoverable by fixing the code afterwards.
+
+That asymmetry, not the login screen, is what makes this `risk_level: high`. The
+narrowing of BQ-5 does not change it.
 
 ## User Moment
 
-- Before: **not established**
-- After: **not established**
-- Why now: **not established.** Whether the trigger is present-day pain or
-  anticipated growth is itself an open question
+- **Before:** a second business wants to use Snap Camp. There is no way to give them
+  access without them being able to reach the first business's inventory, so the
+  answer is either "no" or "here is your own separate copy to install and maintain".
+- **After:** each business signs in and sees only its own inventory. One deployment
+  serves many businesses, and none of them can see another's data.
+- **Why now:** the deployment model was settled on 2026-08-03 as one shared product.
+  v1's isolation came from data never leaving the browser, and that property
+  disappears the moment the product is hosted. This is not a problem that appears
+  later — it appears with the second customer.
 
 ## Destination
 
@@ -123,13 +159,25 @@ they do today instead.
 
 ## Users
 
-- Primary user: **not established.** Possibly the anchor partner, possibly a future customer, possibly Snap Camp itself as an operator. These are different products
-- Secondary user: —
-- Excluded user: —
+- **Primary user:** the owner or assistant at a small specialty business recording
+  inventory — the same person `PRD-001` serves, now signing in to a hosted product
+  rather than using their own browser's storage.
+- **Secondary user:** **none.** There is no administrator, no operator role, and no
+  support path into a login's data. This follows directly from the BQ-5 narrowing
+  and is the reason a lost passcode is unrecoverable.
+- **Excluded user:** every other login, with respect to this login's data. That
+  exclusion is the requirement, not a footnote.
 
 ## Goals
 
-**Not established.** Goals follow a problem.
+- **Goal 1:** a business's inventory data is reachable only by that business.
+- **Goal 2:** more than one business can use Snap Camp at the same time, from one
+  deployment.
+- **Goal 3:** the recording experience `PRD-001` delivered is preserved — the speed
+  bar in `UX01` is not paid for with a login wall on every entry.
+
+Goal 3 is deliberate: the product's whole premise is beating paper. A backend that
+makes recording slower defeats the thing it is being added to.
 
 ## Non-Goals
 
@@ -142,11 +190,33 @@ must be **explicitly reopened**, with what changed and why recorded in
 
 | Closed in `PRD-001` | Decision | To use it here |
 |---|---|---|
-| **Multi-device use** | `OQ-11`, 2026-07-28 — client **confirmed single-device only**; `localStorage` sufficient; the `backend/` question stays closed | Reopen `OQ-11` with evidence the answer changed |
-| **Accounts and authentication** | `SEC02` — no auth, no accounts, no personal data. A *tested* requirement, not just a decision | Reopen `SEC02`; sensitive-surface review required |
-| **External services and network** | `SEC03` — zero external network requests, verified by integration check | Reopen `SEC03`; sensitive-surface review required |
-| **Any database** | `OQ-5` — browser `localStorage`; a backend database *"would activate `backend/` and contradict `SEC03`, and is the v2 path"* | Reopen `OQ-5` |
-| **Multi-user** | `PRODUCT.md` later-scope list | Reopen as product scope, not as a technical detail |
+| **Multi-device use** | `OQ-11`, 2026-07-28 — client confirmed single-device only | **Still closed.** A shared deployment does not by itself require multi-device. Reopen only with evidence the answer changed |
+| ~~Accounts and authentication~~ | `SEC02` | **REOPENED 2026-08-03** for `PRD-002` scope. Still in force for v1. Authorization is now a requirement, not an option |
+| ~~External services and network~~ | `SEC03` | **REOPENED 2026-08-03** for `PRD-002` scope. Still in force for v1 |
+| **Any database** | `OQ-5` — browser `localStorage` | Still closed as a *choice*. A shared deployment implies server-side storage, but no database has been selected and none should be before approval |
+| **Multi-user** | `PRODUCT.md` later-scope list | **Still closed.** Multi-*tenant* is not multi-*user*. Whether one business has several logins is `BQ-5` |
+
+### Ruled Out By The BQ-5 Narrowing (2026-08-03)
+
+A login is the isolation boundary and nothing more. These are **not** deferred —
+they are out of scope by decision, and adding any of them needs a new decision
+recorded in `DECISIONS.md`, not an assumption inside a bead.
+
+- User profiles, roles, or permissions
+- An admin layer, operator console, or support access into a data space
+- Password reset, forgotten-login recovery, or any account restoration path
+- More than one user per login
+- Any business, team, or organisation grouping above the login
+
+**Consequence, accepted and recorded:** a lost passcode means permanently lost
+server data. The `.xlsx` export is a partial mitigation for days already exported.
+
+### Ruled Out By The Other BQ Answers
+
+- Multi-device sync, conflict resolution, device registry (`BQ-2` — `OQ-11` stands)
+- Data migration, import paths, v1/v2 dual-running for data reasons (`BQ-3`, `BQ-6`)
+- Offline mode, local-first architecture, sync queues (`BQ-7`)
+- Splitting this across several PRDs (`BQ-8`)
 
 ### Also Not This PRD
 
@@ -167,24 +237,72 @@ Recorded so "build a backend" is compared against alternatives rather than assum
 
 ## Requirements
 
-**None.** Requirements follow an approved problem. Writing them now would be
-inventing scope.
+Redrafted 2026-08-03 against the narrowed BQ-5: a login is the isolation boundary,
+with no account management of any kind. Single device, no offline requirement, no
+data migration, one PRD.
+
+Requirement IDs are stable from here. Acceptance oracles are **not yet written** and
+are required before approval.
 
 ### Functional Requirements
 
-*(empty)*
+| ID | Requirement | Priority | Notes |
+|---|---|---|---|
+| `PRD-002-FR01` | A username and passcode grant access to exactly one data space | P0 | The whole of the access model |
+| `PRD-002-FR02` | Entries recorded during a session are stored in that session's data space and no other | P0 | Isolation at write time |
+| `PRD-002-FR03` | The daily log, consolidated totals, and export show only the signed-in space's data | P0 | Isolation at read time |
+| `PRD-002-FR04` | Signing out ends the session and returns to the sign-in screen | P0 | Shop devices are shared |
+| `PRD-002-FR05` | Recording, consolidation, daily rollover, and `.xlsx` export behave exactly as `PRD-001` defines | P0 | v1 behaviour is preserved, not redesigned |
+| `PRD-002-FR06` | A data space persists server-side across sessions, browser resets, and redeployments | P0 | Replaces `localStorage` as the working store |
 
 ### UX Requirements
 
-*(empty)*
+| ID | Requirement | Priority | Notes |
+|---|---|---|---|
+| `PRD-002-UX01` | Signing in happens once per session, never per entry | P0 | Protects the `PRD-001-UX01` speed bar |
+| `PRD-002-UX02` | The signed-in identity is visible on screen at all times | P0 | On a shared device, "whose data is this" must never be a guess |
+| `PRD-002-UX03` | A connection failure mid-entry surfaces a plain message and does not silently discard the entry | P0 | Offline support is out of scope; **silent data loss is not** |
 
 ### Security And Privacy Requirements
 
-*(empty — but note that any backend reopens `SEC02` and `SEC03`, both currently tested requirements)*
+| ID | Requirement | Priority | Notes |
+|---|---|---|---|
+| `PRD-002-SEC01` | No request can read, write, or infer another data space's contents — including through logs, error messages, or response differences | P0 | **The core requirement of this PRD** |
+| `PRD-002-SEC02` | Authorization is enforced server-side on every request, never by the client | P0 | A hidden UI element is not access control |
+| `PRD-002-SEC03` | Credentials are never stored, transmitted, or logged in recoverable form | P0 | |
+| `PRD-002-SEC04` | Sessions expire, and signing out invalidates the session server-side | P0 | Client-side sign-out alone is not sign-out |
+| `PRD-002-SEC05` | No real design-partner identities, customer names, or supplier pricing enter the repository, fixtures, or logs | P0 | Carried unchanged from `PRD-001-SEC01` |
 
 ### Non-Functional Requirements
 
-*(empty)*
+| ID | Requirement | Priority | Notes |
+|---|---|---|---|
+| `PRD-002-NFR01` | Recording an entry stays fast enough that `PRD-001-UX01`'s bar is not lost to network latency | P0 | **`UX01` has never been measured — see below** |
+| `PRD-002-NFR02` | The daily log renders within the bar measured for `PRD-001-NFR03`, allowing for data arriving over the network | P1 | Measured locally at 2.2ms for 200 entries; network cost is new and unmeasured |
+
+**16 requirements, down from 19.** That reduction is smaller than the "10–12" I
+estimated when recommending the rescope, and the estimate was wrong for an
+instructive reason: the earlier draft contained no account-management requirements
+to delete. It was already isolation-focused. What the BQ-5 narrowing actually did
+was **harden the non-goals** and remove a whole category of *future* requirements,
+not existing ones.
+
+### Note On `NFR01` And The Speed Bar
+
+The client's `BQ-7` answer states that *"`UX01`'s speed bar stands as originally
+measured"*. **`PRD-001-UX01` was never measured.** `B002`'s Closeout Evidence records
+it explicitly:
+
+> *"`UX01` is NOT verified — no timed comparison against handwritten lines was run
+> and no measurements exist, so the adoption bar is unproven."*
+
+What was measured is `PRD-001-NFR03` — render performance, 2.2ms at 200 entries. A
+different requirement.
+
+This matters because `NFR01` asks that network latency not cost the speed bar, and
+there is no baseline to compare against. Once a round trip is added, the first
+measurement will include the network and the local figure becomes unrecoverable. If
+that baseline is wanted, it has to be taken before this PRD is built.
 
 ## Acceptance Oracle Matrix
 
@@ -262,30 +380,51 @@ Nothing to compile into `FEATURES.md`.
 
 ## Open Questions
 
-All four block this PRD. The middle column names what each one would **reopen** if
-answered a particular way — so the cost of an answer is visible before it is given.
+All eight questions were resolved on 2026-08-03. `BQ-1` and `BQ-4` fell to the
+deployment-model confirmation; the rest were answered by the client, with `BQ-5`
+narrowed in a follow-up.
 
-| # | Question | Would reopen | Blocks |
+| # | Question | Answer | Effect |
 |---|---|---|---|
-| **BQ-1** | What breaks today without a backend? Name something the anchor partner does that browser-local storage cannot support | Nothing by itself — but a real answer here is what makes any of the others legitimate | **The whole PRD.** Without this there is no problem statement and nothing else can be written |
-| **BQ-2** | Has the single-device answer changed? A second device, a phone on the shop floor, an assistant working in parallel | **`OQ-11`** (single-device confirmed 2026-07-28) and consequently **`OQ-5`** (`localStorage` sufficient) | Persistence design, sync model, conflict handling |
-| **BQ-3** | Is data loss the driver? `localStorage` can be cleared without warning; the `.xlsx` export is the durable record only if they actually export daily | **`OQ-5`** if durability requires a server. May reopen nothing if an export habit or reminder solves it | Whether the answer is a backend at all, or a much smaller change |
-| **BQ-4** | Is this for the anchor partner, or for selling Snap Camp to other businesses? | **`SEC02`** (accounts), **`SEC03`** (external services), and `PRODUCT.md` strategy and non-bets | Users, destination, and whether this is a persistence PRD or a commercial one — different products |
+| ~~BQ-1~~ | ~~What breaks today without a backend?~~ | Shared deployment cannot serve a second business without isolation | **Resolved.** Became the problem statement |
+| ~~BQ-2~~ | ~~Record on more than one device?~~ | **Single device at a time** | **`OQ-11` stands as confirmed and is NOT reopened.** Rules out sync, conflict resolution, and multi-device session handling |
+| ~~BQ-3~~ | ~~Is `localStorage` data loss a driver?~~ | **No.** Not a driver | Rules out migration as a motivation. Consistent with `BQ-6` |
+| ~~BQ-4~~ | ~~Anchor partner, or selling to other businesses?~~ | Multiple businesses | **Resolved.** Reopened `SEC02` and `SEC03` for this PRD's scope |
+| ~~BQ-5~~ | ~~One login per business, or several? Who administers access?~~ | **Narrowed and answered 2026-08-03.** A login is the isolation boundary and nothing more — no profiles, roles, admin, recovery, or grouping above it | **Resolved.** Removes account management from scope. Does not reduce the isolation requirement |
+| ~~BQ-6~~ | ~~What happens to existing `localStorage` data?~~ | **No existing local data to migrate** | Rules out any import path, and rules out supporting v1 and v2 side by side for data reasons |
+| ~~BQ-7~~ | ~~Does the recorder work offline?~~ | **Solid connectivity confirmed. Offline not required for v2** | Rules out local-first, sync queues, and offline conflict handling. `SEC03` reopens in one direction only — the app now makes network calls |
+| ~~BQ-8~~ | ~~What is the appetite? One PRD or several?~~ | **One PRD**, and it stays its own PRD rather than becoming a bead | **Resolved 2026-08-03.** A bead is not structurally available: `PRD-PROTOCOL.md` requires a PRD before coding, and this cannot extend `PRD-001`, which is complete and browser-only by decision |
 
-**BQ-3 is the most likely to hold up**, because it names a failure mode already
-recorded in `DECISIONS.md` and does not require the single-device answer to have
-changed. It is also the one most likely to be solved without a backend, which is
-worth knowing before building one.
+### What the answers rule out
 
-**BQ-1 is the gate.** The other three refine a problem; without BQ-1 there is none.
+Recorded so later work does not quietly reintroduce them:
+
+- **No multi-device sync**, no conflict resolution, no device registry (`BQ-2`)
+- **No data migration**, no import path, no v1/v2 dual-running for data reasons (`BQ-3`, `BQ-6`)
+- **No offline mode**, no local-first architecture, no sync queue (`BQ-7`)
+- **No PRD split** — one scope (`BQ-8`)
+
+Each of these would need a new decision recorded in `DECISIONS.md`, not an
+assumption inside a bead.
+
+### All eight are now answered
+
+No open question blocks this PRD. What blocks approval is unfinished work, not
+unanswered questions: there are no acceptance oracles, no risk-model detail, no
+architecture, and no bead proposals. See `Approval`.
 
 ## Approval
 
 - Approved by: *not approved*
 - Approved on: *not approved*
-- Approval notes: **Skeleton only.** No problem statement, no requirements, no
-  acceptance oracles, no architecture. Cannot be approved in this state and must not
-  be used as the source for Architecture Shaping, decomposition, beads, or code.
+- Approval notes: **Not approvable yet.** A problem statement exists as of
+  2026-08-03 and `BQ-1` and `BQ-4` are resolved, but there are still no requirements,
+  no acceptance oracles, and no architecture, and six open questions remain.
 
-  Created under bead `B009` on 2026-08-03 so the backend conversation has a home.
-  `PRD-001` and v1 are untouched and continue independently.
+  Per `PRD-PROTOCOL.md` section 7, approval requires clear goals and non-goals,
+  stable requirement IDs, an acceptance oracle for every requirement, explicit risk
+  and permission gates, and bead proposals narrow enough to execute. None of those
+  exist yet.
+
+  Shaped under bead `B009`. `PRD-001` and v1 are untouched and continue
+  independently.

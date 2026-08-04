@@ -153,23 +153,23 @@ avoid.
 
 ## Closeout Evidence
 
-- Checks run: pending
-- Evidence source: pending — recorded check output under `logs/` once checks are run
-- Result: pending
-- Manual verification: pending — must state who checked, what was checked, environment, result, and remaining uncertainty
-- Files changed: pending
-- Next bead: pending
-- Review decision: pending
-- Drift observed: pending — check by hand, since `files-in-play-check.py` is blind in this subfolder topology
-- Lesson to promote: pending
-- Follow-up bead needed: pending
-- Blocked escape: pending
-- Reference follow-through: pending
+- Checks run: `bash scripts/validate-memory.sh` -> pass (exit 0) at 2026-08-03T19:29:07.238099+00:00; log `logs/check-output/20260803T192907Z-bash-scripts-validate-memory.sh.log` | `python3 scripts/file-inventory.py --check` -> pass (exit 0) at 2026-08-03T19:29:07.671644+00:00; log `logs/check-output/20260803T192907Z-python3-scripts-file-inventory.py-check.log`
+- Result: latest recorded command status is pass (exit 0)
+- Manual verification: Who checked: Claude (agent), 2026-08-03. What was checked: `PRD-002-backend.md` created at `status: draft` with all 24 sections required by `PRD-SHARD-SCHEMA.md`; the Problem section deliberately left open with the reason recorded; five `PRD-001` decisions listed as inherited non-goals each with what reopening costs; four open questions BQ-1 to BQ-4 each naming what it would reopen and what it blocks; no technology, architecture, hosting, or schema proposed; `PRD-001`, `B001` and `frontend/` confirmed untouched by Git diff. Environment: local macOS checkout, run from `precode/`. Result: pass — the skeleton is complete as scaffolding. Remaining uncertainty: **no backend problem was found**, so the PRD cannot progress; whether one exists is unknown until BQ-1 is answered by the builder and client.
+- Files changed: 1 changed path(s) at last evidence update
+- Next bead: none named yet
+- Review decision: pending human acceptance
+- Drift observed: none. Changed files were `tasks/prds/PRD-002-backend.md` (new), this bead file and `tasks/todo.md`, all within the declared `files_in_play`. `CANDIDATE-QUEUE.md` was declared but not needed. `PRD-001`, `B001` and `frontend/` were verified untouched by Git diff, as the builder required. Checked by hand.
+- Lesson to promote: a stated technology is not a problem statement. The only backend input was the client's intent to use MongoDB, and `PRD-001` had already closed the three problems a backend usually solves — each as a recorded decision, not an oversight. Recording those closures as inherited non-goals that must be *explicitly reopened* is what stops a new PRD quietly assuming its way past earlier decisions. Listing what each open question would reopen makes the cost of an answer visible before it is given.
+- Follow-up bead needed: none from this bead. `PRD-002` is parked pending BQ-1. Carried forward from v1: the `UX01` timing comparison, real Tab-key navigation, browser re-check of consolidation since the case amendment, and observing a real midnight roll.
+- Blocked escape: not needed. The bead anticipated this outcome — its Objective states that if no problem survives the question, saying so and parking is a legitimate result rather than a failure. That is what happened.
+- Reference follow-through: not applicable — no public PrecodeOS package surfaces were changed.
 - Human contributor: Caron Ng
 - Contributor role: builder and approver
-- Agent/tool surface: pending
-- Attribution reviewed by: pending
-- Attribution uncertainty: pending
+- Agent/tool surface: Claude Code (Opus 5)
+- Attribution reviewed by: not reviewed
+- Attribution uncertainty: none noted
+- Evidence source: `logs/check-results.jsonl`
 
 ## Handback
 
