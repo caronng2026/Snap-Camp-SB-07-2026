@@ -1,6 +1,6 @@
 ---
 bead_id: B013
-status: in_progress
+status: done
 execution_mode: builder
 bead_kind: implementation
 primary_authority: tasks/prds/PRD-002-backend.md
@@ -47,7 +47,7 @@ Last updated: 2026-08-04
 ## State
 
 - ID: `B013`
-- Status: `in_progress`
+- Status: `done`
 - Execution mode: `builder`
 
 ## Primary Authority

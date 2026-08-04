@@ -1,8 +1,8 @@
 ---
-current_bead: tasks/beads/B013-backend-auth-boundary.md
+current_bead: tasks/beads/B014-space-scoped-store.md
 current_state: in_progress
 build_lane: Backend product definition
-active_feature_window: Backend auth boundary
+active_feature_window: Space-scoped store
 primary_authority: tasks/prds/PRD-002-backend.md
 ---
 # PrecodeOS — Active Work File
@@ -24,33 +24,33 @@ primary_authority: tasks/prds/PRD-002-backend.md
 > Noticed is facts only, never directives or hidden backlog.
 
 Creator: Caron Ng
-Document version: v1.3.0
+Document version: v1.4.0
 Last updated: 2026-08-04
 
 ---
 
 ## Current Bead
 
-- `tasks/beads/B013-backend-auth-boundary.md`
+- `tasks/beads/B014-space-scoped-store.md`
 - State: `in_progress`
 - Build lane: `Backend product definition`
-- Active feature window: `Backend auth boundary`
+- Active feature window: `Space-scoped store`
 
 ## Done When
 
-- `backend/` exists as a Node project with Fastify, the `mongodb` driver, `bcrypt`,
-  and Vitest as its test runner.
-- A login can be created with a username and passcode, stored with a bcrypt hash.
-- Signing in with correct credentials returns a session; wrong credentials do not.
-- The session is a **signed HTTP-only cookie**, with a server-side session record
-  carrying the space id.
-- A protected route is refused without a valid session, **before any handler runs**.
-- Signing out invalidates the session server-side; replaying it afterwards fails.
-- An expired session is refused.
-- The passcode never appears in the database, in a response, or in a log.
-- The Atlas connection string is read from the environment and **never committed**.
+- A store module exists whose every data function takes a space id first, and which
+  **exports no way to reach daily-log data without one**.
+- Entries recorded in one space are invisible from another, at both read and write.
+- The space id used by any route comes from `request.spaceId`, set only by the
+  session hook from `B013`.
+- The cross-space attempt suite passes: id substitution, enumeration, session-token
+  reuse, and non-existent ids — each refused.
+- Denial responses are **byte-identical** for "not yours" and "does not exist".
+- Data survives a client reconnect and a server restart.
+- SKUs are normalised server-side by the `DATA-MODELS.md` rule — trim, upper-case,
+  then strip leading zeros if entirely digits — because the client is not trusted.
 - All checks below are run and recorded.
-- **No daily-log route, and no scoped store.** Those are bead 2.
+- **No consolidation, export, or frontend change.** Those are bead 3.
 
 ## Primary Authority File
 
@@ -58,11 +58,10 @@ Last updated: 2026-08-04
 
 ## Files In Play
 
-- `backend/package.json`
-- `backend/package-lock.json`
 - `backend/src/`
 - `backend/tests/`
-- `tasks/beads/B013-backend-auth-boundary.md`
+- `backend/package.json`
+- `tasks/beads/B014-space-scoped-store.md`
 - `tasks/todo.md`
 
 ## Checks To Run
@@ -72,20 +71,18 @@ Last updated: 2026-08-04
 
 ## Explicit Out-of-Scope
 
-- Authorization would be decided anywhere but server-side, or after a handler runs.
-- The connection string would be written to any file in the repository.
-- A passcode would be stored, returned, or logged in recoverable form.
-- A reset, recovery, or admin path starts to appear — BQ-5 ruled them out.
-- Scope reaches daily-log data or the scoped store. That is bead 2, and it must land
-  whole.
-- A dependency beyond Fastify, `mongodb`, `bcrypt` and the already-approved Vitest is
-  needed.
-- Atlas is unreachable — raise an unblocker rather than working around it.
+- Any data path can be called without a space id.
+- A space id could come from the request body, query, headers, or path.
+- Denial responses differ between "not yours" and "does not exist".
+- The store exports a raw collection handle or an unscoped query helper.
+- Scope reaches consolidation, export, or the frontend.
+- A dependency beyond the approved three plus Vitest is needed.
+- A cross-space leak is found — **escalate rather than patching quietly.**
 - Stop condition: pause and ask before crossing any stop condition above.
 
 ## Next Up
 
-- Begin `tasks/beads/B013-backend-auth-boundary.md` only within its Done When, Files In Play, and Stop If boundaries.
+- Begin `tasks/beads/B014-space-scoped-store.md` only within its Done When, Files In Play, and Stop If boundaries.
 - If the bead is too broad, split it before implementation.
 
 ## Open Questions
@@ -94,5 +91,5 @@ Last updated: 2026-08-04
 
 ## Noticed
 
-- Promoted from `tasks/beads/B012-adapt-owner-files-for-backend.md` to `tasks/beads/B013-backend-auth-boundary.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-04 17:25 UTC.
+- Promoted from `tasks/beads/B013-backend-auth-boundary.md` to `tasks/beads/B014-space-scoped-store.md` by `python3 scripts/bead-transition.py --approve` at 2026-08-04 17:35 UTC.
 
