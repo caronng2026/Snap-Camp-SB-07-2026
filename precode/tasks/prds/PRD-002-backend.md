@@ -63,11 +63,23 @@ Conviction Packet behind it. This has one sentence.
 
 ## Alignment / Grilling Summary
 
-- Alignment method: `none yet`
-- Shared design concept: **not established**
-- Key decisions reached: none
-- Remaining implementation-changing questions: all of them — see `Open Questions`
-- Stale or discarded assumptions: none recorded
+- **Alignment method:** builder interrogation across 2026-08-03 and 2026-08-04. The
+  builder is also the client, so answers were direct rather than relayed.
+- **Shared design concept:** a login is the isolation boundary; everything else is
+  the machinery required to make that boundary trustworthy.
+- **Key decisions reached:** shared deployment confirmed · `SEC02` and `SEC03`
+  reopened for this scope only · BQ-5 narrowed from account-per-business to a bare
+  login · no recovery accepted · stays one PRD.
+- **Recommended answers accepted:** keeping this as its own PRD rather than a bead;
+  renaming from "Multi-Tenant Backend"; recording the no-recovery consequence.
+- **Recommended answers rejected or changed:** the agent estimated the BQ-5 narrowing
+  would cut requirements to 10–12; it did not, and the reason is recorded under
+  `Requirements`.
+- **Remaining implementation-changing questions:** none at PRD level. Framework, data
+  store, session mechanism, and how `frontend/` and `backend/` connect are all
+  Architecture Shaping questions and are listed there.
+- **Stale or discarded assumptions:** the original account-per-business framing, and
+  the agent's earlier bet that `localStorage` data loss would be the driver.
 
 ## Domain Language
 
@@ -86,12 +98,19 @@ imply grouping that BQ-5 ruled out.
 
 ## PRFAQ-Lite
 
-- Press-release claim: **not written** — there is no claim to make yet
-- Customer problem: **not established**
-- Customer FAQ: —
-- Internal FAQ: —
-- Appetite: **unknown.** A backend is materially larger than all of v1 combined
-- Kill or pause criteria: if no problem survives `Open Questions`, park this PRD and record why
+- **Press-release claim:** Snap Camp now serves more than one business at a time, and
+  no business can see another's inventory.
+- **Customer problem:** a second business cannot use Snap Camp without seeing the
+  first one's data.
+- **Customer FAQ:** *Do I need an account?* A username and passcode. *What if I lose
+  it?* There is no reset — keep your daily exports. *Can my assistant use it?* Yes,
+  on the same login. *Does it work offline?* No.
+- **Internal FAQ:** the hard part is isolation, not the login screen. The login is
+  deliberately minimal so the isolation work is not diluted by account management.
+- **Appetite:** larger than all of v1 combined. It introduces a server, a data store,
+  credentials, sessions, and hosting where v1 has none.
+- **Kill or pause criteria:** pause if `NFR01` shows the round trip costs the
+  recording experience — a slower recorder defeats the product it is being added to.
 
 ## Problem
 
@@ -144,18 +163,35 @@ narrowing of BQ-5 does not change it.
 
 ## Destination
 
-- Destination statement: **not established**
-- Definition of done: **not established**
-- First useful vertical slice: **not established**
+- **Destination statement:** two businesses can use Snap Camp at the same time from
+  one deployment, each signing in to its own data space, with neither able to reach
+  the other's inventory.
+- **Definition of done:** two logins exist; each records a full day independently;
+  neither can read, write, or infer the other's data through any exercised path; and
+  the `PRD-001` recording experience is unchanged.
+- **First useful vertical slice:** sign in, record one entry, sign out, sign in as a
+  second login, and see an empty log. That single loop demonstrates the isolation
+  boundary end to end.
 
 ## Product Constitution Fit
 
 - `PRODUCT.md` loaded: `yes`
-- Product promise fit: **cannot be assessed.** The promise is *"record it once during the day, and the end-of-day spreadsheet is already done."* A backend does not obviously serve that promise, which is itself worth noticing
-- User and job fit: the recorded users are three specialty businesses using a single device each. No backend need follows from them as recorded
-- Strategy and non-goal fit: **tension.** `PRODUCT.md` lists explicit non-bets including *"becoming a full inventory management system"*. A backend is not automatically that, but it moves toward it
-- Current bet or success signal affected: none. The v1 bet is `approved` and its success signals are behavioural, none requiring a server
-- Product constitution update needed: **unknown until the problem exists**
+- **Product promise fit:** neutral-to-supporting. The promise is *"record it once
+  during the day, and the end-of-day spreadsheet is already done."* Isolation does
+  not advance that promise, but it is what allows the promise to be offered to more
+  than one business at a time.
+- **User and job fit:** unchanged. The same person doing the same job, now signing in
+  first.
+- **Strategy and non-goal fit:** consistent. `PRODUCT.md`'s explicit non-bets are
+  *"becoming a full inventory management system"* and competing on breadth. Isolated
+  logins add no inventory features. The BQ-5 narrowing keeps it that way.
+- **Current bet or success signal affected:** none directly. The v1 bet is `approved`
+  and its behavioural success signals are unchanged — but they now depend on the
+  recording experience surviving a network round trip (`NFR01`).
+- **Product constitution update needed:** **yes, on approval.** `PRODUCT.md` currently
+  describes a browser-local single-business product. Its Current Bets table needs a
+  row for this work, and Strategy needs to record that Snap Camp serves multiple
+  businesses from one deployment.
 
 ## Users
 
@@ -306,77 +342,191 @@ that baseline is wanted, it has to be taken before this PRD is built.
 
 ## Acceptance Oracle Matrix
 
-*(empty — no requirements to build oracles for)*
+One row per requirement, 16 of 16. Nothing here is proof until run through
+`bash scripts/record-check.sh -- <command>` and recorded in bead Closeout Evidence.
+
+| Requirement | Expected behavior | Lane | Automated check | Manual check | Fixture | Does not prove |
+|---|---|---|---|---|---|---|
+| `FR01` | WHEN a valid username and passcode are submitted THE SYSTEM SHALL start a session bound to exactly one data space | `integration` | sign-in returns a session scoped to one space id; wrong passcode returns no session | sign in as two different logins in turn | two seeded logins | that credentials are hard to guess |
+| `FR02` | WHEN a signed-in user records an entry THE SYSTEM SHALL store it in that session's space and no other | `integration` | record in space A; assert the entry exists in A and space B is unchanged | record in one login, sign in as the other, confirm absence | two logins, one entry | correctness under concurrent writes |
+| `FR03` | WHEN a signed-in user views the log THE SYSTEM SHALL return only that space's entries, totals, and export data | `integration` | seed both spaces; assert each read returns only its own rows | eyeball both logins side by side | two logins, distinct entries | that no unexercised read path leaks |
+| `FR04` | WHEN the user signs out THE SYSTEM SHALL end the session and return to sign-in | `integration` | after sign-out, a protected request is refused and the sign-in screen renders | sign out, press Back, confirm no data | one login with entries | that the browser retains no cached view |
+| `FR05` | Recording, consolidation, daily rollover, and `.xlsx` export behave exactly as `PRD-001` defines | `integration` | the `PRD-001` suite passes against server-backed storage | record a day and export it | a full dummy day | that behaviour matches under network failure |
+| `FR06` | WHEN a session ends, the browser is reset, or the server restarts THE SYSTEM SHALL still return the space's data | `integration` | write, restart the server process, read back | sign out, clear the browser, sign in again | one login with entries | durability against data-store loss or corruption |
+| `UX01` | Signing in happens once per session, never per entry | `integration` | record ten entries in one session; assert exactly one authentication | record several entries and confirm no re-prompt | one login | that session length suits a working day |
+| `UX02` | THE SYSTEM SHALL display the signed-in identity at all times while signed in | `integration` | the identity element is present and correct on every screen state | glance at the screen mid-entry | two logins | that a user notices it |
+| `UX03` | WHEN a request fails mid-entry THE SYSTEM SHALL show a plain message and preserve the typed entry | `integration` | simulate a failed write; assert an error is shown and the field values remain | disconnect the network and save | one login | recovery from every kind of failure |
+| `SEC01` | No request can read, write, or infer another space's contents — including through logs, error messages, or response differences | `integration` | a cross-space attempt suite: substituting another space's id, enumerating ids, reusing another session's token, and requesting a non-existent id — each denied, and denial responses identical for "not yours" and "does not exist" | review server logs after a cross-space attempt for leaked identifiers or data | two logins with distinct data | **absence of leaks in paths the suite does not exercise.** This is a negative claim over an unbounded set of requests; the suite bounds the known cases only |
+| `SEC02` | Authorization is decided server-side on every request | `integration` | a request crafted without the UI, carrying a valid session for space A and a space B id, is refused | — | two logins | that every future endpoint will be covered |
+| `SEC03` | Credentials are never stored, transmitted, or logged in recoverable form | `static` + `integration` | stored credential is not the plaintext and is not reversible; grep request and server logs for the plaintext after sign-in | inspect the store after creating a login | one login with a known passcode | resistance to offline cracking |
+| `SEC04` | Sessions expire, and sign-out invalidates them server-side | `integration` | a session token replayed after sign-out is refused; an expired token is refused | sign out, replay the request from a second tab | one login | that expiry length is appropriate |
+| `SEC05` | No real design-partner identities, customer names, or supplier pricing enter the repository, fixtures, or logs | `static` | grep fixtures, seeds, and committed files for the redaction list | review fixtures before commit | — | that external copies are clean |
+| `NFR01` | Recording an entry completes fast enough that the interaction stays comparable to `PRD-001` | `integration` | measure round-trip save time; regression bar set from the first measurement | record ten entries and judge whether it still feels immediate | one login | **that it beats paper.** `PRD-001-UX01`'s comparison was deliberately not measured, so no baseline exists |
+| `NFR02` | The daily log renders within the `PRD-001-NFR03` bar, allowing for data arriving over the network | `integration` | render 200 server-loaded entries; assert against a bar set from measurement | — | 200 seeded entries | real browser paint on shop hardware |
+
+### On Testing `SEC01`
+
+`SEC01` is the only requirement here stated as a negative over an unbounded set, and
+it is the one that matters most. A passing suite means *the attempts we thought of
+were refused* — not that no path leaks.
+
+Two things follow, both deliberate. The denial responses for "not yours" and "does
+not exist" must be identical, or the difference itself becomes an enumeration
+oracle. And the "does not prove" column says plainly that unexercised paths are
+uncovered, so a green suite is never read as proof of isolation.
+
+**Recommendation, to settle at Architecture Shaping:** enforce scoping in one place
+that every data access passes through, so isolation is structural rather than
+repeated per endpoint. That is an architecture decision and is not made here.
 
 ## Risk And Permission Model
 
 ### Sensitive Surfaces
 
-Every surface v1 closed would reopen. This is why `risk_level` is `high` while the
-PRD is otherwise empty.
+Every surface v1 closed reopens here. This is why `risk_level` is `high`.
 
-- Auth: would be introduced. Currently none
-- Payments: unknown; depends on whether this is a commercial product
-- User data: would leave the user's own machine for the first time
-- Uploads: unknown
-- External services: would be introduced. Currently none
-- Secrets: would be introduced — connection strings, credentials, keys. Currently none anywhere in the repository
-- Destructive actions: server-side data loss, migrations, and multi-device conflict resolution are all new failure modes
+| Surface | Status in this PRD |
+|---|---|
+| Auth | **Introduced.** Username and passcode; no reset, no recovery (BQ-5) |
+| User data | **Leaves the machine for the first time.** Inventory data moves to a server |
+| Secrets | **Introduced.** Credential hashes, session secrets, and a data-store connection |
+| External services | **Introduced.** The app now makes network calls (`SEC03` of v1 reopened) |
+| Destructive actions | Server-side data loss, redeployment, and **permanent lockout on a lost passcode** |
+| Payments | None. Not in scope |
+| Uploads | None. The export remains download-only |
 
 ### Human Approval Gates
 
-- Approval required before: answering any `Open Question` in a way that reopens a `PRD-001` decision; choosing any technology; creating `backend/`; adding any dependency; approving this PRD
-- Stop if: a requirement is written without a problem behind it, or a technology choice starts driving requirements
-- Escalate when: partner data would leave the local machine
+- **Approval required before:** approving this PRD; choosing a framework, data store,
+  or host; adding any dependency; creating `backend/`; any deployment; activating any
+  bead.
+- **Stop if:** a requirement is written without a problem behind it · isolation is
+  enforced anywhere other than server-side · a recovery or admin path starts to
+  appear, which BQ-5 ruled out · real partner data would be used in a fixture or a
+  deployed environment.
+- **Escalate when:** a cross-space leak is found at any point, including in
+  development. That is not an ordinary bug — it is the failure this PRD exists to
+  prevent.
 
 ### Tool And Environment Boundaries
 
-**Not established.** No hosting, runtime, or environment has been chosen, and none
-should be before approval.
+- **Allowed tools:** local development only until a deployment decision is made and
+  approved.
+- **Network needs:** the app makes calls to its own backend. No third-party service
+  is approved.
+- **Dependency changes:** every one is an approval gate. v1 currently carries three
+  (Vite, Vitest, `write-excel-file`) plus jsdom.
+- **Dashboard/manual steps:** none approved. Hosting, DNS, and certificates are
+  deliberately out of scope until backend beads are built.
+
+### Product Risks
+
+| Risk | Why it matters | Early signal |
+|---|---|---|
+| A silent cross-space leak | The failure this PRD exists to prevent, and the one least likely to be noticed | any response differing between "not yours" and "does not exist" |
+| Network latency costs the speed bar | `PRD-001`'s premise is beating paper, and there is no baseline to compare against | entry feels hesitant; users pause between items |
+| Permanent lockout | No reset and no admin, by decision | a business asks for help getting back in |
+| Scope creep toward an account system | Roles, resets, and admin are each individually reasonable and collectively a different product | any requirement mentioning a user rather than a login |
+| Deploying before it is ready | Hosting makes a leak reachable by strangers rather than by a test | deployment discussed before backend beads exist |
 
 ## Architecture / Project Context Impact
 
-- Project context impact: `material` — activating `backend/` changes the repository topology recorded under `B001`
+- **Project context impact:** `material`. This activates `backend/`, changes the
+  storage boundary, and introduces a network boundary where `PRD-001` has none.
 - `PROJECT-CONTEXT.md` loaded: `yes`
-- **Architecture Shaping: not run, and must not be.** Its load condition is an
-  **approved** PRD (`ARCHITECTURE-SHAPING-PROTOCOL.md:6`). This PRD is a skeleton
-- Architecture Brief evidence: none, correctly
-- Owner-file updates needed: unknown until a problem exists
+- **Architecture Shaping: needed, not yet run.** Its load condition is an approved
+  PRD, so it runs after approval and before decomposition. It triggers on auth, data
+  models, APIs, external services, dependencies, and deployment — all six.
+- Architecture Brief evidence: none yet, correctly.
+- **Owner-file updates expected after Architecture Shaping:** `ARCHITECTURE.md`
+  (backend shape, how `frontend/` and `backend/` connect), `API.md` (currently records
+  that no server boundary exists — that becomes false), `DATA-MODELS.md` (space,
+  login, session; how `DailyLog` is scoped), `SECURITY.md` (auth, secrets,
+  authorization model), `PROJECT-CONTEXT.md` (stack, integration boundaries,
+  deployment target), `DECISIONS.md`.
+- **Questions Architecture Shaping must answer**, listed so they are not mistaken for
+  PRD-level gaps: backend framework and language · where isolation is enforced ·
+  data store · session mechanism · how `frontend/` talks to `backend/` in development
+  and in production · what runs locally versus deployed.
 
 ## Module / Interface Candidates
 
-*(empty — module boundaries follow architecture, which follows approval)*
+Provisional. Boundaries follow Architecture Shaping; these are the shapes the
+requirements imply, recorded so the PRD is reviewable rather than to fix a design.
+
+| Candidate | Responsibility | Contract |
+|---|---|---|
+| `Login` | Credentials and the space they map to | Verifying credentials yields exactly one space id, or nothing |
+| `Session` | The signed-in period | Issued on sign-in; invalid after sign-out or expiry; carries a space id that the client cannot influence |
+| `SpaceScopedStore` | Every read and write of daily-log data | **Cannot be called without a space id.** Isolation should be structural, not repeated per endpoint |
+| `AuthBoundary` | Server-side authorization on every request | Rejects before any handler runs |
+
+The `SpaceScopedStore` shape is the one worth arguing about at Architecture Shaping:
+if scoping can be forgotten at a call site, `SEC01` depends on discipline rather than
+structure.
 
 ## Agent Context Contract
 
-- Primary authority file: this PRD once approved; until then `tasks/reference/PRD-PROTOCOL.md`
-- Secondary reference files: `DECISIONS.md`, `PRODUCT.md`, `SECURITY.md`, `PRD-001`
-- Files or folders likely in play: none. Nothing is buildable from this PRD
-- Files or folders out of scope: **everything.** `frontend/`, `backend/`, and all v1 files
-- Required checks: none yet
-- Forbidden assumptions: do not assume a backend is needed; do not assume MongoDB; do not assume `OQ-11`, `SEC02`, `SEC03`, or `OQ-5` are reopened; do not treat this skeleton as approved; do not write a problem statement that is not evidenced
+- **Primary authority file:** this PRD, once approved.
+- **Secondary reference files:** `DECISIONS.md`, `SECURITY.md`, `ARCHITECTURE.md`,
+  `DATA-MODELS.md`, and `PRD-001` for the behaviour being preserved.
+- **Files or folders likely in play:** `backend/` (does not exist yet), `frontend/`
+  where it calls the backend, `frontend/package.json`. Exact paths follow
+  Architecture Shaping.
+- **Files or folders out of scope:** everything under `precode/` except the active
+  bead and `tasks/todo.md`; `PRD-001`; the v1 modules whose behaviour is preserved
+  rather than redesigned.
+- **Required checks:** `record-check.sh -- validate-memory.sh`, plus
+  `record-check.sh --cwd ../frontend -- npm test` and the backend equivalent once it
+  exists.
+- **Forbidden assumptions:** do not assume a framework, data store, or host · do not
+  add roles, resets, admin, or multi-user — BQ-5 ruled them out · do not reopen
+  `OQ-11` (single-device stands) · do not add offline support · do not build a
+  migration path · do not deploy · do not use real partner data anywhere · do not
+  treat a passing isolation suite as proof that no path leaks.
 
 ## Anti-Shallow Checks
 
-- User problem named: **no — deliberately open**
-- Non-goals named: **yes** — inherited closures listed explicitly above
-- Before/after user moment clear: **no**
-- Requirements observable: **n/a** — none exist
-- Sensitive surfaces identified: **yes** — all would reopen
-- Authority files identified: **yes**
-- First bead can be one logical unit: **no** — nothing to slice
-- Generated text reviewed by user: **pending**
-
-Failing most of these is the correct state for a skeleton. It is recorded so the
-gap is visible rather than assumed closed.
+- User problem named: **yes** — one shared deployment cannot serve a second business without isolation.
+- Non-goals named: **yes** — five ruled out by BQ-5, four by the other answers, plus inherited closures.
+- Before/after user moment clear: **yes**.
+- Requirements observable: **yes** — 16 requirements, each with an acceptance oracle.
+- Sensitive surfaces identified: **yes** — every surface v1 closed reopens, listed with status.
+- Authority files identified: **yes**, including which change after Architecture Shaping.
+- First bead can be one logical unit: **yes** — sign in, record, sign out, see an empty log as a second login.
+- Generated text reviewed by user: **pending** — this is the read being asked for.
 
 ## Bead Proposals
 
-**None.** Decomposition requires an approved PRD, and there is nothing to decompose.
+**Provisional and pre-architecture.** Decomposition runs properly after Architecture
+Shaping, when `files_in_play` can be bound to real paths. These exist so the PRD can
+be judged on whether it decomposes sensibly, per approval criterion 14.
+
+| Proposed bead | Requirements | Done when |
+|---|---|---|
+| `B###-backend-scaffold-and-auth-boundary` | `FR01`, `FR04`, `SEC02`, `SEC03`, `SEC04` | A login signs in, gets a session, and signs out; every protected request is refused without one |
+| `B###-space-scoped-storage` | `FR02`, `FR03`, `FR06`, `SEC01` | Entries read and write through a store that cannot be called without a space id; the cross-space attempt suite is refused |
+| `B###-connect-frontend-to-backend` | `FR05`, `UX01`, `UX02`, `UX03`, `NFR01` | The v1 recording experience works against the backend, with the identity shown and no silent loss on failure |
+| `B###-measure-network-cost` | `NFR01`, `NFR02` | Round-trip save and 200-entry render measured; bars set from the measurement |
+
+**Smallest first bead:** `backend-scaffold-and-auth-boundary`. It is the vertical
+slice that makes everything after it testable, and it is where `SEC02` — server-side
+enforcement — is established rather than retrofitted.
+
+`SEC05` is cross-cutting: every bead checks fixtures for partner identities.
 
 ## Compilation Notes
 
-Nothing to compile into `FEATURES.md`.
+On approval, add to `FEATURES.md`:
+
+- Feature entry: **Isolated logins with server-side storage**, source `PRD-002`.
+- Functional requirements `FR01`–`FR06`. UX, security, and non-functional
+  requirements stay in the shard beside their oracles, matching how `PRD-001` was
+  compiled.
+- MVP slice note: the isolation loop — sign in, record, sign out, second login sees
+  nothing of the first.
+- `PRODUCT.md` also needs a Current Bets row and a Strategy line recording that Snap
+  Camp serves multiple businesses from one deployment.
 
 ## Open Questions
 
@@ -417,14 +567,21 @@ architecture, and no bead proposals. See `Approval`.
 
 - Approved by: *not approved*
 - Approved on: *not approved*
-- Approval notes: **Not approvable yet.** A problem statement exists as of
-  2026-08-03 and `BQ-1` and `BQ-4` are resolved, but there are still no requirements,
-  no acceptance oracles, and no architecture, and six open questions remain.
+- Approval notes: **Ready for the builder's read.** All eight open questions are
+  resolved, 16 requirements each carry an acceptance oracle, the risk model and
+  approval gates are explicit, and provisional bead proposals show the work
+  decomposes sensibly.
 
-  Per `PRD-PROTOCOL.md` section 7, approval requires clear goals and non-goals,
-  stable requirement IDs, an acceptance oracle for every requirement, explicit risk
-  and permission gates, and bead proposals narrow enough to execute. None of those
-  exist yet.
+  Approval means the product destination is stable enough to compile and shape. It is
+  **not** architecture permission and **not** permission to code. Architecture Shaping
+  runs next and answers framework, data store, session mechanism, and how `frontend/`
+  and `backend/` connect. Deployment comes after backend beads exist and are built.
 
-  Shaped under bead `B009`. `PRD-001` and v1 are untouched and continue
-  independently.
+  Two things to weigh before approving. **`SEC01` is a negative claim over an
+  unbounded set** — a passing suite means the attempts we thought of were refused, not
+  that nothing leaks; that limit is stated in its oracle rather than papered over.
+  And **`NFR01` has no baseline**, because `PRD-001-UX01`'s paper comparison was
+  deliberately not measured (2026-08-04); the first measurement will include the
+  network and the local figure is unrecoverable.
+
+  Shaped under bead `B009`. `PRD-001` and v1 are untouched.

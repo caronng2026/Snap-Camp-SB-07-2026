@@ -73,6 +73,20 @@ Changed: `FR01` wording and its acceptance oracle; the `sku` rule in
 The `B005` stop condition for undefined grouping rules fired as designed — the work
 paused and asked rather than inventing a rule.
 
+**2026-08-04 — `UX01` paper comparison deliberately not measured.**
+The timed comparison against handwriting is removed from `UX01`'s acceptance oracle
+and recorded as a decision rather than an outstanding task. The oracle now rests on
+the automated keyboard and focus checks alone.
+
+`UX01`'s adoption bar — that recording beats writing a line on paper — is therefore
+**unproven and will remain so**. See the note under the Acceptance Oracle Matrix for
+what this covers, what it does not prove, and what it costs.
+
+This amendment was made while `B009` (backend PRD shaping) was the active bead, and
+`B009` lists amending `PRD-001` as explicitly out of scope. The builder directed it
+by name, which is recorded as an explicit override in `B009`'s Closeout Evidence
+rather than treated as ordinary drift.
+
 ## Feature Link
 
 - Feature: `TBD` — no `FEATURES.md` entry exists yet
@@ -256,7 +270,7 @@ Agent-facing translation of the builder-approved product story.
 | `PRD-001-FR06` | WHEN a new business day begins THE SYSTEM SHALL present an empty log without destroying the prior day | `integration` | day-rollover test | roll the date, confirm empty log and prior day retrievable | two-day fixture | bead closeout | real multi-day habit |
 | `PRD-001-NFR01` | WHEN the app is reloaded THE SYSTEM SHALL still show today's entries | `integration` | persistence test | reload, confirm entries remain | one dummy day | bead closeout | durability across devices |
 | `PRD-001-SEC01` | Repository and fixtures contain no real partner identities or supplier pricing | `static` | grep for partner names in fixtures | review fixtures before commit | — | bead closeout | that external copies are clean |
-| `PRD-001-UX01` | WHEN the app has focus THE SYSTEM SHALL accept a complete entry (SKU → quantity → save) using the keyboard alone, with no mouse required, returning focus to the SKU field after each save | `integration` | tab-order assertion; post-save focus returns to SKU field | time 10 consecutive entries against 10 handwritten lines | 10 dummy SKUs | bead closeout | that it feels faster in a real shop, under interruption, with hands full |
+| `PRD-001-UX01` | WHEN the app has focus THE SYSTEM SHALL accept a complete entry (SKU → quantity → save) using the keyboard alone, with no mouse required, returning focus to the SKU field after each save | `integration` | tab-order assertion; post-save focus returns to SKU field; both fields clear after save | **none — the paper-speed comparison was deliberately not measured; see the note below** | 10 dummy SKUs | bead closeout | **that the app is faster than handwriting.** That comparison was never run, by decision, so the adoption bar remains unproven |
 | `PRD-001-UX02` | WHEN an entry is saved THE SYSTEM SHALL show it in today's log without a page reload | `integration` | assert entry visible after save with no navigation event | save one entry and watch it appear | 1 dummy entry | bead closeout | that the confirmation is noticeable in peripheral vision |
 | `PRD-001-UX03` | WHEN a SKU has multiple entries THE SYSTEM SHALL display the consolidated total in the log itself, not only in the export | `integration` | enter one SKU three times; assert a single visible row with the summed total | confirm the total is readable without exporting | duplicate-SKU fixture | bead closeout | that users trust the merge enough to stop re-checking by hand |
 | `PRD-001-UX04` | WHEN viewing today's log THE SYSTEM SHALL expose the generate-summary action in one step | `integration` | assert the action is present and a single activation triggers the export | locate and trigger it without instruction | one full dummy day | bead closeout | discoverability for a first-time user |
@@ -265,6 +279,32 @@ Agent-facing translation of the builder-approved product story.
 | `PRD-001-SEC03` | WHEN completing a full record-to-export cycle THE SYSTEM SHALL make no external network request | `integration` | assert zero outbound requests during the cycle | check the browser network panel end to end | one full dummy day | bead closeout | absence of requests in code paths the test does not exercise |
 | `PRD-001-NFR02` | WHEN the summary is opened in Excel THE SYSTEM SHALL produce no repair prompt, with the SKU column typed as text | `manual` | assert `.xlsx` structural validity and SKU cells typed as text | open in real Excel; confirm `00734` reads as `00734` | leading-zero SKU fixture | bead closeout | behaviour across other Excel versions or LibreOffice |
 | `PRD-001-NFR03` | WHEN today's log holds ~200 entries THE SYSTEM SHALL render the log in under 500ms and keep entry responsive | `integration` | median-of-7 warm render at 200 and 1,000 entries, plus the cost of adding one entry | scroll and add an entry with 200 present | 200 and 1,000 dummy entries | bead closeout, `B008` | real browser behaviour on shop hardware — jsdom does no layout or paint |
+
+### Note On `UX01` — Paper Comparison Deliberately Not Measured
+
+`UX01`'s written intent is *"recording one entry takes no more setup than writing a
+line on paper."* The timed comparison against handwriting — ten keyboard entries
+against ten handwritten lines — was **deliberately not run**, decided 2026-08-04.
+This is a decision, not an oversight or an outstanding task.
+
+**What the oracle now covers:** the automated checks only — keyboard-only entry with
+no mouse, focus returning to the SKU field after every save including on error, both
+fields clearing, and document order with no `tabindex` override. All are asserted by
+integration tests and pass.
+
+**What it therefore does not prove:** that the app is actually faster than
+handwriting. The adoption bar named in the requirement is unproven and will stay
+unproven. `PRODUCT.md`'s stop signal — *"says it is not faster than their sheet"* —
+has no measurement behind it, and would surface in real use rather than in the suite.
+
+**Why this is defensible:** `UX01`'s mechanical preconditions are the part an
+automated check can hold onto, and they are held. The comparison is a question about
+a human in a shop, which the packet's "watch them use it" plan answers far better
+than a stopwatch in a quiet room.
+
+**What it costs:** the measurement window closes. `PRD-002` adds a network round trip
+to every entry, after which a local baseline is unrecoverable — any later figure
+includes the network. This was raised before the decision and accepted.
 
 **`NFR03` was measured on 2026-08-03 under `B008` and the 500ms bar is confirmed.** Median of seven warm renders: **2.2ms at 200 entries / 60 SKUs**, **11.3ms at 1,000 entries / 300 SKUs**, and **3.3ms to add one entry to a 200-entry day**. Cost scales linearly with entry count. Regression bars in the suite are set from the measurement (100ms, 300ms, 50ms), not from the original figure. **What this does not prove:** the timings are from jsdom, which performs no layout, paint, or compositing — they bound the application's own work, not what a user feels on shop hardware. A first run reported 36ms purely from module and JIT warm-up, which is why the recorded figures are warm medians.
 
