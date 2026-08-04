@@ -90,3 +90,43 @@ describe('failures surface — PRD-002-UX03', () => {
       .catch((e) => expect(e.unauthorized).toBe(true))
   })
 })
+
+// VITE_API_BASE_URL exists for a future split-origin deployment. Until cross-origin
+// is actually supported it must stay empty, so the default is pinned here: relative
+// paths, which are same-origin in development and in production alike.
+describe('the API base URL', () => {
+  const spy = () => {
+    const calls = []
+    const f = async (url) => {
+      calls.push(String(url))
+      return { ok: true, status: 200, json: async () => ({ entries: [] }) }
+    }
+    return [f, calls]
+  }
+
+  it('sends relative, same-origin paths by default', async () => {
+    const [f, calls] = spy()
+    await createApi(f).log('2026-08-04')
+    expect(calls[0]).toBe('/api/log/2026-08-04')
+  })
+
+  it('prefixes an absolute base when one is configured', async () => {
+    const [f, calls] = spy()
+    await createApi(f, { baseUrl: 'https://api.example.com' }).log('2026-08-04')
+    expect(calls[0]).toBe('https://api.example.com/api/log/2026-08-04')
+  })
+
+  it('does not produce a double slash when the base has a trailing one', async () => {
+    const [f, calls] = spy()
+    await createApi(f, { baseUrl: 'https://api.example.com/' }).log('2026-08-04')
+    // Not a substring check: 'https://api...' legitimately contains '//api'.
+    expect(calls[0]).toBe('https://api.example.com/api/log/2026-08-04')
+    expect(calls[0].split('://')[1]).not.toContain('//')
+  })
+
+  it('treats an unset base as empty rather than as the string "undefined"', async () => {
+    const [f, calls] = spy()
+    await createApi(f, { baseUrl: undefined }).log('2026-08-04')
+    expect(calls[0]).toBe('/api/log/2026-08-04')
+  })
+})

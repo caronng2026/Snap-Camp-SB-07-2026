@@ -5,6 +5,11 @@
  * Same-origin by decision, so requests carry the session cookie automatically and
  * there is no CORS configuration anywhere.
  *
+ * VITE_API_BASE_URL exists so a deployment can point the app at an absolute backend
+ * URL, but it must stay empty until cross-origin is actually supported: the browser
+ * will not send the session cookie cross-site, so every request would 401. Empty
+ * means relative paths, which are same-origin in both development and production.
+ *
  * This client never sends a space id. The server takes it from the session and
  * ignores anything the client claims, but sending one would still be misleading
  * about where authority lives.
@@ -19,8 +24,16 @@ export class ApiError extends Error {
   }
 }
 
-export function createApi(fetchImpl = globalThis.fetch) {
-  async function request(url, init) {
+/** Vite replaces import.meta.env at build time; it is absent under plain Node. */
+const configuredBase = import.meta.env?.VITE_API_BASE_URL ?? ''
+
+export function createApi(fetchImpl = globalThis.fetch, { baseUrl = configuredBase } = {}) {
+  // A trailing slash would produce '//api/...', which some hosts treat as a
+  // different path than '/api/...'.
+  const base = String(baseUrl ?? '').replace(/\/+$/, '')
+
+  async function request(path, init) {
+    const url = base + path
     let res
     try {
       res = await fetchImpl(url, init)
